@@ -1,0 +1,13 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <rect width="120" height="120" rx="26" fill="#00ADE4"/>
+  <!-- Top diamond -->
+  <polygon points="60,12 78,28 60,44 42,28" fill="white"/>
+  <!-- Right diamond -->
+  <polygon points="108,60 90,42 76,60 90,78" fill="white"/>
+  <!-- Bottom diamond -->
+  <polygon points="60,108 78,92 60,76 42,92" fill="white"/>
+  <!-- Left diamond -->
+  <polygon points="12,60 30,42 44,60 30,78" fill="white"/>
+  <!-- Center diamond -->
+  <polygon points="60,48 72,60 60,72 48,60" fill="white"/>
+</svg>
