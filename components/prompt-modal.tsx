@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Copy, Check, X, ChevronRight } from 'lucide-react'
+import { Copy, Check, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Prompt, Variable } from '@/lib/types'
 import {
@@ -104,7 +104,7 @@ export function PromptModal({ prompt, open, onClose }: PromptModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-3xl w-full p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-3xl sm:max-w-3xl w-full p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0">
           <div className="flex items-start gap-3">
