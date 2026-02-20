@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Search, X, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { Search, X, Sparkles, LayoutGrid } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { PromptCard } from '@/components/prompt-card'
 import { PromptModal } from '@/components/prompt-modal'
@@ -13,16 +13,6 @@ import { Separator } from '@/components/ui/separator'
 import { Prompt } from '@/lib/types'
 import { getAllPrompts, getModules } from '@/lib/data'
 import { cn } from '@/lib/utils'
-
-const MODULE_ICONS: Record<string, string> = {
-  ci: '⚡',
-  cd: '🚀',
-  ff: '🚩',
-  ccm: '💰',
-  sto: '🛡️',
-  ce: '🌪️',
-  srm: '📈',
-}
 
 export default function HomePage() {
   const allPrompts = useMemo(() => getAllPrompts(), [])
@@ -116,7 +106,7 @@ export default function HomePage() {
                 )}
               >
                 <span className="flex items-center gap-2">
-                  <span>🗂️</span>
+                  <LayoutGrid className="h-3.5 w-3.5 shrink-0" />
                   <span>All modules</span>
                 </span>
                 <span className="text-[10px] opacity-70 font-mono">{allPrompts.length}</span>
@@ -136,7 +126,10 @@ export default function HomePage() {
                   )}
                 >
                   <span className="flex items-center gap-2 truncate">
-                    <span>{MODULE_ICONS[mod.id] ?? '📦'}</span>
+                    <span
+                      className="h-2 w-2 rounded-full shrink-0"
+                      style={{ backgroundColor: selectedModule === mod.id ? 'white' : mod.color }}
+                    />
                     <span className="truncate">{mod.shortName}</span>
                   </span>
                   <span className="text-[10px] opacity-70 font-mono shrink-0 ml-1">
@@ -159,7 +152,7 @@ export default function HomePage() {
                   ref={searchRef}
                   value={query}
                   onChange={e => handleSearch(e.target.value)}
-                  placeholder="Search prompts, use cases, tags… (⌘K)"
+                  placeholder="Search prompts, use cases, tags… (Cmd+K)"
                   className="pl-9 pr-8 h-9 text-sm bg-muted/40 border-border/60 focus-visible:ring-[var(--harness-blue)]/30"
                 />
                 {query && (
@@ -185,7 +178,11 @@ export default function HomePage() {
                     )}
                     onClick={() => setSelectedModule(mod.id === selectedModule ? null : mod.id)}
                   >
-                    {MODULE_ICONS[mod.id]} {mod.shortName}
+                    <span
+                      className="h-1.5 w-1.5 rounded-full mr-1"
+                      style={{ backgroundColor: selectedModule === mod.id ? 'white' : mod.color }}
+                    />
+                    {mod.shortName}
                   </Button>
                 ))}
               </div>

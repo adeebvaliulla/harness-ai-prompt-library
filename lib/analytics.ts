@@ -6,47 +6,11 @@ import { format, subDays } from 'date-fns'
 // Replace with Supabase/Postgres for production persistence.
 const events: AnalyticsEvent[] = []
 
-// Seed with some initial copy events to make analytics look realistic on first load
-function seedEvents() {
-  if (events.length > 0) return
-  const now = new Date()
-  SAMPLE_PROMPTS.forEach(prompt => {
-    for (let i = 0; i < prompt.copyCount; i++) {
-      const daysAgo = Math.floor(Math.random() * 30)
-      const date = subDays(now, daysAgo)
-      events.push({
-        type: 'copy',
-        promptId: prompt.id,
-        moduleId: prompt.moduleId,
-        timestamp: date.toISOString(),
-      })
-    }
-  })
-  // Seed some search events
-  const searches = [
-    'canary deployment', 'docker build', 'parallel tests', 'cost optimization',
-    'feature flag rollout', 'slo configuration', 'security scanning', 'kubernetes',
-    'budget alerts', 'chaos experiment', 'caching strategy', 'blue green',
-  ]
-  searches.forEach(query => {
-    const count = Math.floor(Math.random() * 20) + 5
-    for (let i = 0; i < count; i++) {
-      events.push({
-        type: 'search',
-        searchQuery: query,
-        resultCount: Math.floor(Math.random() * 10) + 1,
-        timestamp: subDays(now, Math.floor(Math.random() * 30)).toISOString(),
-      })
-    }
-  })
-}
-
 export function trackEvent(event: Omit<AnalyticsEvent, 'timestamp'>) {
   events.push({ ...event, timestamp: new Date().toISOString() })
 }
 
 export function getAnalyticsSummary(): AnalyticsSummary {
-  seedEvents()
 
   const copyEvents = events.filter(e => e.type === 'copy')
   const searchEvents = events.filter(e => e.type === 'search' && e.searchQuery)
