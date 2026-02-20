@@ -17,20 +17,16 @@ export function Navbar() {
         {/* Logo + title */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <Image
-            src="/harness-logo.svg"
+            src="/harness-logo-full.png"
             alt="Harness"
-            width={28}
-            height={28}
+            width={120}
+            height={25}
             priority
+            className="object-contain"
           />
-          <div className="flex flex-col leading-none">
-            <span className="font-semibold text-sm text-foreground tracking-tight">
-              Harness AI
-            </span>
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
-              Prompt Library
-            </span>
-          </div>
+          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest border-l border-border/60 pl-2.5 ml-0.5">
+            Prompt Library
+          </span>
         </Link>
 
         <div className="flex-1" />

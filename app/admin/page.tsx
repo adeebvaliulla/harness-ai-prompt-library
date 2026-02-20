@@ -137,7 +137,7 @@ function PromptEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-2xl w-full flex flex-col max-h-[90vh] p-0 gap-0">
+      <DialogContent className="max-w-3xl w-full flex flex-col max-h-[90vh] p-0 gap-0">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{prompt ? 'Edit Prompt' : 'New Prompt'}</DialogTitle>
         </DialogHeader>
@@ -148,33 +148,48 @@ function PromptEditorDialog({
               <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Generate CI Pipeline YAML" />
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label>Module</Label>
                 <Select value={moduleId} onValueChange={v => { setModuleId(v); setUseCaseTitle(''); setSubUseCaseTitle('') }}>
-                  <SelectTrigger><SelectValue placeholder="Select module" /></SelectTrigger>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select module" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {MODULES.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                    {MODULES.map(m => (
+                      <SelectItem key={m.id} value={m.id}>
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full shrink-0 inline-block" style={{ backgroundColor: m.color }} />
+                          {m.name}
+                        </span>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label>Use Case</Label>
-                <Select value={useCaseTitle} onValueChange={v => { setUseCaseTitle(v); setSubUseCaseTitle('') }} disabled={!moduleId}>
-                  <SelectTrigger><SelectValue placeholder="Select use case" /></SelectTrigger>
-                  <SelectContent>
-                    {useCases.map(uc => <SelectItem key={uc.id} value={uc.title}>{uc.title}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Sub Use Case</Label>
-                <Select value={subUseCaseTitle} onValueChange={setSubUseCaseTitle} disabled={!useCaseTitle}>
-                  <SelectTrigger><SelectValue placeholder="Select sub" /></SelectTrigger>
-                  <SelectContent>
-                    {subUseCases.map(s => <SelectItem key={s.id} value={s.title}>{s.title}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Use Case</Label>
+                  <Select value={useCaseTitle} onValueChange={v => { setUseCaseTitle(v); setSubUseCaseTitle('') }} disabled={!moduleId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select use case" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {useCases.map(uc => <SelectItem key={uc.id} value={uc.title}>{uc.title}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Sub Use Case</Label>
+                  <Select value={subUseCaseTitle} onValueChange={setSubUseCaseTitle} disabled={!useCaseTitle}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select sub use case" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subUseCases.map(s => <SelectItem key={s.id} value={s.title}>{s.title}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
