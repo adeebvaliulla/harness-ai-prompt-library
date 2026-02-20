@@ -39,7 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Prompt } from '@/lib/types'
+import { Prompt, AgentType, PromptMode, PromptAvailability, AGENT_LABELS, AGENT_COLORS } from '@/lib/types'
 import { getModules } from '@/lib/data'
 import { AnalyticsSummary } from '@/lib/types'
 
@@ -74,23 +74,35 @@ function PromptEditorDialog({
   onSaved: () => void
 }) {
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [content, setContent] = useState('')
   const [moduleId, setModuleId] = useState('')
   const [useCaseTitle, setUseCaseTitle] = useState('')
   const [subUseCaseTitle, setSubUseCaseTitle] = useState('')
   const [tagsInput, setTagsInput] = useState('')
+  const [agentType, setAgentType] = useState<AgentType>('devops')
+  const [mode, setMode] = useState<PromptMode>('standard')
+  const [availability, setAvailability] = useState<PromptAvailability>('ga')
+  const [mcpInput, setMcpInput] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (prompt) {
       setTitle(prompt.title)
+      setDescription(prompt.description ?? '')
       setContent(prompt.content)
       setModuleId(prompt.moduleId)
       setUseCaseTitle(prompt.useCaseTitle)
       setSubUseCaseTitle(prompt.subUseCaseTitle)
       setTagsInput(prompt.tags.join(', '))
+      setAgentType(prompt.agentType ?? 'devops')
+      setMode(prompt.mode ?? 'standard')
+      setAvailability(prompt.availability ?? 'ga')
+      setMcpInput(prompt.mcpRequirements?.join(', ') ?? '')
     } else {
-      setTitle(''); setContent(''); setModuleId(''); setUseCaseTitle(''); setSubUseCaseTitle(''); setTagsInput('')
+      setTitle(''); setDescription(''); setContent(''); setModuleId('')
+      setUseCaseTitle(''); setSubUseCaseTitle(''); setTagsInput('')
+      setAgentType('devops'); setMode('standard'); setAvailability('ga'); setMcpInput('')
     }
   }, [prompt, open])
 
@@ -107,9 +119,12 @@ function PromptEditorDialog({
     setSaving(true)
     try {
       const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean)
+      const mcpRequirements = mcpInput ? mcpInput.split(',').map(t => t.trim()).filter(Boolean) : undefined
       const selectedUC = useCases.find(uc => uc.title === useCaseTitle)
       const payload = {
-        title, content, moduleId, tags,
+        title, description, content, moduleId, tags,
+        agentType, mode, availability,
+        ...(mcpRequirements?.length ? { mcpRequirements } : {}),
         useCaseId: selectedUC?.id ?? '',
         useCaseTitle: useCaseTitle ?? '',
         subUseCaseId: subUseCases.find(s => s.title === subUseCaseTitle)?.id ?? '',
@@ -147,6 +162,63 @@ function PromptEditorDialog({
               <Label>Title</Label>
               <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Generate CI Pipeline YAML" />
             </div>
+
+            <div className="space-y-1.5">
+              <Label>Description <span className="text-muted-foreground font-normal text-xs">(what Harness AI will produce)</span></Label>
+              <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="e.g., Generates a complete CI pipeline YAML with build, test, and caching stages." />
+            </div>
+
+            {/* Agent / Mode / Availability */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label>AI Agent</Label>
+                <Select value={agentType} onValueChange={v => setAgentType(v as AgentType)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.entries(AGENT_LABELS) as [AgentType, string][]).map(([id, label]) => (
+                      <SelectItem key={id} value={id}>
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full shrink-0 inline-block" style={{ backgroundColor: AGENT_COLORS[id] }} />
+                          {label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Mode</Label>
+                <Select value={mode} onValueChange={v => setMode(v as PromptMode)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="architect">Architect Mode</SelectItem>
+                    <SelectItem value="mcp">MCP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Availability</Label>
+                <Select value={availability} onValueChange={v => setAvailability(v as PromptAvailability)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ga">GA</SelectItem>
+                    <SelectItem value="beta">Beta</SelectItem>
+                    <SelectItem value="q3">Coming Q3</SelectItem>
+                    <SelectItem value="q4">Coming Q4</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {mode === 'mcp' && (
+              <div className="space-y-1.5">
+                <Label>MCP Requirements <span className="text-muted-foreground font-normal text-xs">(comma-separated)</span></Label>
+                <Input value={mcpInput} onChange={e => setMcpInput(e.target.value)} placeholder="e.g., GitHub, Jira, Datadog" />
+              </div>
+            )}
 
             <div className="space-y-3">
               <div className="space-y-1.5">

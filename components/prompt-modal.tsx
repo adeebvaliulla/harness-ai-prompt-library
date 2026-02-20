@@ -1,9 +1,14 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Copy, Check, ChevronRight } from 'lucide-react'
+import { Copy, Check, ChevronRight, Wrench, Zap, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { Prompt, Variable } from '@/lib/types'
+import {
+  Prompt, Variable,
+  AGENT_LABELS, AGENT_COLORS,
+  AVAILABILITY_LABELS,
+  CustomerContext,
+} from '@/lib/types'
 import {
   Dialog,
   DialogContent,
@@ -30,6 +35,8 @@ interface PromptModalProps {
   prompt: Prompt | null
   open: boolean
   onClose: () => void
+  customerContext?: CustomerContext
+  contextVarMap?: Record<keyof CustomerContext, string[]>
 }
 
 function extractVariableNames(content: string): string[] {
@@ -54,7 +61,13 @@ function getVariableDefinition(name: string, variables: Variable[]): Variable {
   }
 }
 
-export function PromptModal({ prompt, open, onClose }: PromptModalProps) {
+const AVAILABILITY_BANNER: Record<string, { label: string; className: string }> = {
+  beta: { label: 'Beta — may change before GA', className: 'bg-blue-500/10 text-blue-700 border-blue-500/20' },
+  q3: { label: 'Coming Q3 — not yet available in Harness AI', className: 'bg-amber-500/10 text-amber-700 border-amber-500/20' },
+  q4: { label: 'Coming Q4 — not yet available in Harness AI', className: 'bg-orange-500/10 text-orange-700 border-orange-500/20' },
+}
+
+export function PromptModal({ prompt, open, onClose, customerContext, contextVarMap }: PromptModalProps) {
   const [values, setValues] = useState<Record<string, string>>({})
   const [copied, setCopied] = useState(false)
 
@@ -63,17 +76,26 @@ export function PromptModal({ prompt, open, onClose }: PromptModalProps) {
     [prompt]
   )
 
-  // Reset values when prompt changes, applying defaults
   useEffect(() => {
     if (!prompt) return
     const defaults: Record<string, string> = {}
     variableNames.forEach(name => {
       const def = getVariableDefinition(name, prompt.variables)
-      defaults[name] = def.defaultValue ?? ''
+      // Check if customer context has a value for this variable
+      let contextValue = ''
+      if (customerContext && contextVarMap) {
+        for (const [ctxKey, varNames] of Object.entries(contextVarMap) as [keyof CustomerContext, string[]][]) {
+          if (varNames.includes(name) && customerContext[ctxKey]) {
+            contextValue = customerContext[ctxKey]
+            break
+          }
+        }
+      }
+      defaults[name] = contextValue || def.defaultValue || ''
     })
     setValues(defaults)
     setCopied(false)
-  }, [prompt, variableNames])
+  }, [prompt, variableNames, customerContext, contextVarMap])
 
   const filledContent = useMemo(
     () => (prompt ? fillTemplate(prompt.content, values) : ''),
@@ -102,6 +124,12 @@ export function PromptModal({ prompt, open, onClose }: PromptModalProps) {
 
   if (!prompt) return null
 
+  const agentColor = AGENT_COLORS[prompt.agentType]
+  const agentLabel = AGENT_LABELS[prompt.agentType]
+  const availabilityBanner = AVAILABILITY_BANNER[prompt.availability]
+  const isArchitect = prompt.mode === 'architect'
+  const isMcp = prompt.mode === 'mcp'
+
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
       <DialogContent className="max-w-3xl sm:max-w-3xl w-full p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col">
@@ -125,6 +153,42 @@ export function PromptModal({ prompt, open, onClose }: PromptModalProps) {
               </div>
             </div>
           </div>
+
+          {/* Agent + mode row */}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span
+              className="text-[11px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1.5"
+              style={{ backgroundColor: `${agentColor}18`, color: agentColor }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: agentColor }} />
+              {agentLabel}
+            </span>
+
+            {isArchitect && (
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 bg-[var(--harness-blue)]/10 text-[var(--harness-blue)]">
+                <Wrench className="h-3 w-3" />
+                Use in Architect Mode for best results
+              </span>
+            )}
+
+            {isMcp && prompt.mcpRequirements && (
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 bg-amber-500/10 text-amber-700">
+                <Zap className="h-3 w-3" />
+                Requires: {prompt.mcpRequirements.join(', ')} MCP connection
+              </span>
+            )}
+          </div>
+
+          {/* Availability banner */}
+          {availabilityBanner && (
+            <div className={cn(
+              'flex items-center gap-2 mt-2 px-3 py-2 rounded-lg border text-xs font-medium',
+              availabilityBanner.className
+            )}>
+              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              {availabilityBanner.label}
+            </div>
+          )}
         </DialogHeader>
 
         {/* Body */}
@@ -219,12 +283,18 @@ export function PromptModal({ prompt, open, onClose }: PromptModalProps) {
 
             {/* Footer */}
             <div className="px-4 py-3 flex items-center justify-between gap-3 shrink-0">
-              {variableNames.length > 0 && !allFilled && (
-                <p className="text-xs text-muted-foreground">
-                  Fill in all fields to customize your prompt
-                </p>
-              )}
-              <div className="flex-1" />
+              <div className="flex-1 min-w-0">
+                {variableNames.length > 0 && !allFilled && (
+                  <p className="text-xs text-muted-foreground">
+                    Fill in all fields to customize your prompt
+                  </p>
+                )}
+                {isArchitect && (
+                  <p className="text-xs text-[var(--harness-blue)]">
+                    Tip: Start a new Harness AI chat and type &ldquo;Architect Mode&rdquo; before pasting
+                  </p>
+                )}
+              </div>
               <Button variant="outline" size="sm" onClick={onClose}>
                 Cancel
               </Button>
@@ -239,15 +309,9 @@ export function PromptModal({ prompt, open, onClose }: PromptModalProps) {
                 )}
               >
                 {copied ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Copied!
-                  </>
+                  <><Check className="h-4 w-4" /> Copied!</>
                 ) : (
-                  <>
-                    <Copy className="h-4 w-4" />
-                    Copy Prompt
-                  </>
+                  <><Copy className="h-4 w-4" /> Copy Prompt</>
                 )}
               </Button>
             </div>

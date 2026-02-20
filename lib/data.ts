@@ -1,4 +1,5 @@
-import { Prompt, Module } from './types'
+import { Prompt, RawPrompt, Module } from './types'
+import { PROMPT_METADATA, MCP_PROMPTS, DEFAULT_METADATA } from './prompt-metadata'
 
 export const MODULES: Module[] = [
   {
@@ -447,7 +448,7 @@ export const MODULES: Module[] = [
   },
 ]
 
-export const SAMPLE_PROMPTS: Prompt[] = [
+export const SAMPLE_PROMPTS: RawPrompt[] = [
   // ── CI: Pipeline Creation ──────────────────────────────────────────────────
   {
     id: 'ci-001',
@@ -2486,12 +2487,19 @@ Post-Incident:
   },
 ]
 
+function enrich(raw: RawPrompt): Prompt {
+  return { ...raw, ...(PROMPT_METADATA[raw.id] ?? DEFAULT_METADATA) }
+}
+
+const ALL_RAW = [...SAMPLE_PROMPTS, ...MCP_PROMPTS]
+
 export function getAllPrompts(): Prompt[] {
-  return SAMPLE_PROMPTS
+  return ALL_RAW.map(enrich)
 }
 
 export function getPromptById(id: string): Prompt | undefined {
-  return SAMPLE_PROMPTS.find(p => p.id === id)
+  const raw = ALL_RAW.find(p => p.id === id)
+  return raw ? enrich(raw) : undefined
 }
 
 export function getModules(): Module[] {
@@ -2499,5 +2507,5 @@ export function getModules(): Module[] {
 }
 
 export function getPromptsByModule(moduleId: string): Prompt[] {
-  return SAMPLE_PROMPTS.filter(p => p.moduleId === moduleId)
+  return ALL_RAW.filter(p => p.moduleId === moduleId).map(enrich)
 }
