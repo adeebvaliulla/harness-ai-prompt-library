@@ -2485,6 +2485,1129 @@ Post-Incident:
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '2025-01-15T10:00:00Z',
   },
+
+  // ── Phase 5: New Prompts ───────────────────────────────────────────────────
+
+  // ci-005: Monorepo CI Pipeline
+  {
+    id: 'ci-005',
+    title: 'Monorepo Multi-Service CI Pipeline',
+    content: `Design a Harness CI pipeline for a monorepo containing {{service_count}} services built with {{build_tool}}.
+
+Monorepo root: {{repo_name}}
+Service directories: {{service_list}}
+Shared libraries: {{shared_libs}}
+
+**Requirements:**
+
+1. **Change detection**: Only build services with changes since the last successful build (git diff vs {{base_branch}}). If a shared library changes, include all dependent services in the affected set.
+
+2. **Parallel matrix**: Run all affected services in parallel, capped at {{max_parallelism}} concurrent jobs. Each service runs: lint → unit tests → build → package.
+
+3. **Per-service caching**: Cache {{build_tool}} dependencies using a key: \`{{repo_name}}-<service>-<lockfile-hash>\`. Fall back to the previous cache on miss.
+
+4. **Quality gates per service**:
+   - Code coverage ≥ {{coverage_threshold}}%
+   - 0 critical lint violations
+   - Build must produce a versioned artifact tagged \`{{registry}}/<service>:{{tag_strategy}}\`
+
+5. **Aggregate gate**: All parallel service stages must pass before the pipeline completes. Surface per-service failure summaries in the pipeline notification to {{notify_channel}}.
+
+Output:
+- Full Harness pipeline YAML with the matrix strategy
+- Change detection script (bash) using git diff
+- Cache key template per {{build_tool}}
+- Expected pipeline time reduction vs. building all services every run`,
+    variables: [
+      { id: 'v1', name: 'service_count', label: 'Number of Services', placeholder: 'e.g., 8', type: 'text', defaultValue: '5' },
+      { id: 'v2', name: 'build_tool', label: 'Build Tool', placeholder: 'Select tool', type: 'dropdown', options: ['Maven', 'Gradle', 'npm', 'pnpm', 'Go modules', 'Poetry (Python)'] },
+      { id: 'v3', name: 'repo_name', label: 'Repository Name', placeholder: 'e.g., my-platform', type: 'text' },
+      { id: 'v4', name: 'service_list', label: 'Service Directories (comma-separated)', placeholder: 'e.g., services/api, services/worker, services/frontend', type: 'textarea' },
+      { id: 'v5', name: 'shared_libs', label: 'Shared Library Paths', placeholder: 'e.g., shared/utils, shared/models', type: 'text' },
+      { id: 'v6', name: 'base_branch', label: 'Base Branch', placeholder: 'e.g., main', type: 'text', defaultValue: 'main' },
+      { id: 'v7', name: 'max_parallelism', label: 'Max Parallel Jobs', placeholder: 'e.g., 5', type: 'text', defaultValue: '5' },
+      { id: 'v8', name: 'coverage_threshold', label: 'Coverage Threshold (%)', placeholder: 'e.g., 80', type: 'text', defaultValue: '80' },
+      { id: 'v9', name: 'registry', label: 'Container Registry', placeholder: 'e.g., us-docker.pkg.dev/my-project', type: 'text' },
+      { id: 'v10', name: 'tag_strategy', label: 'Image Tag Strategy', placeholder: 'Select strategy', type: 'dropdown', options: ['Git SHA (short)', 'Semantic version', 'Branch + build number', 'Timestamp'] },
+      { id: 'v11', name: 'notify_channel', label: 'Notification Channel', placeholder: 'e.g., Slack #builds', type: 'text' },
+    ],
+    tags: ['monorepo', 'ci', 'parallelism', 'change-detection', 'caching', 'matrix'],
+    subUseCaseId: 'ci-multi-stage',
+    subUseCaseTitle: 'Multi-Stage Pipelines',
+    useCaseId: 'ci-pipeline-creation',
+    useCaseTitle: 'Pipeline Creation & Configuration',
+    moduleId: 'ci',
+    moduleTitle: 'Continuous Integration',
+    moduleColor: '#6366F1',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // cd-004: GitOps Progressive Delivery
+  {
+    id: 'cd-004',
+    title: 'GitOps Progressive Delivery with Argo CD',
+    content: `Design a full GitOps progressive delivery pipeline for {{service_name}} using Harness CD with Argo CD.
+
+GitOps repository: {{gitops_repo}}
+Environment chain: {{env_chain}}
+
+**Pipeline stages:**
+
+**Stage 1 — Dev → Staging (auto)**
+- Trigger: PR merged to {{trunk_branch}}
+- Action: Harness GitOps operator auto-updates the image tag in the staging overlay ({{staging_overlay}}) to the new SHA
+- Gate: Automated smoke test step — 3 HTTP health checks against {{staging_url}} must return 200
+
+**Stage 2 — Staging → Pre-prod (canary)**
+- Trigger: Manual approval from {{staging_approver}}
+- Canary: Route {{canary_percent}}% of traffic to new version for {{canary_duration}} minutes via Argo Rollouts
+- Continuous Verification gate: error rate < {{error_slo}}% AND P95 latency < {{latency_slo}}ms sustained for the canary window
+- On failure: auto-rollback by reverting the GitOps overlay commit
+
+**Stage 3 — Pre-prod → Production (progressive)**
+- Trigger: {{prod_approval_count}} approvals from group {{prod_approver_group}}
+- Rollout: 10% → 25% → 50% → 100% with {{progression_interval}}-minute intervals and CV analysis between each step
+- Monitored metrics: {{cv_metrics}}
+- Auto-rollback trigger: Any SLO breach → Argo CD sync to the previous revision hash
+
+Provide:
+1. Harness pipeline YAML with all three stages
+2. Argo CD ApplicationSet template for multi-environment overlays
+3. Argo Rollouts canary strategy YAML
+4. Continuous Verification step configuration`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'gitops_repo', label: 'GitOps Config Repository', placeholder: 'e.g., github.com/org/k8s-configs', type: 'text' },
+      { id: 'v3', name: 'env_chain', label: 'Environment Chain', placeholder: 'e.g., dev → staging → pre-prod → production', type: 'text', defaultValue: 'dev → staging → pre-prod → production' },
+      { id: 'v4', name: 'trunk_branch', label: 'Trunk Branch', placeholder: 'e.g., main', type: 'text', defaultValue: 'main' },
+      { id: 'v5', name: 'staging_overlay', label: 'Staging Overlay Path', placeholder: 'e.g., overlays/staging/kustomization.yaml', type: 'text' },
+      { id: 'v6', name: 'staging_url', label: 'Staging URL', placeholder: 'e.g., https://staging.myservice.internal', type: 'text' },
+      { id: 'v7', name: 'staging_approver', label: 'Staging Approver (user/group)', placeholder: 'e.g., platform-team', type: 'text' },
+      { id: 'v8', name: 'canary_percent', label: 'Canary Traffic %', placeholder: 'e.g., 10', type: 'text', defaultValue: '10' },
+      { id: 'v9', name: 'canary_duration', label: 'Canary Duration (minutes)', placeholder: 'e.g., 30', type: 'text', defaultValue: '30' },
+      { id: 'v10', name: 'error_slo', label: 'Error Rate SLO (%)', placeholder: 'e.g., 1', type: 'text', defaultValue: '1' },
+      { id: 'v11', name: 'latency_slo', label: 'P95 Latency SLO (ms)', placeholder: 'e.g., 500', type: 'text', defaultValue: '500' },
+      { id: 'v12', name: 'prod_approval_count', label: 'Prod Approval Count', placeholder: 'e.g., 2', type: 'text', defaultValue: '2' },
+      { id: 'v13', name: 'prod_approver_group', label: 'Prod Approver Group', placeholder: 'e.g., release-managers', type: 'text' },
+      { id: 'v14', name: 'progression_interval', label: 'Progression Interval (minutes)', placeholder: 'e.g., 15', type: 'text', defaultValue: '15' },
+      { id: 'v15', name: 'cv_metrics', label: 'CV Metrics to Monitor', placeholder: 'e.g., error_rate, p95_latency, apdex_score', type: 'text' },
+    ],
+    tags: ['gitops', 'argocd', 'progressive-delivery', 'canary', 'continuous-verification', 'rollback'],
+    subUseCaseId: 'cd-canary',
+    subUseCaseTitle: 'Canary Deployment',
+    useCaseId: 'cd-deployment-strategies',
+    useCaseTitle: 'Deployment Strategies',
+    moduleId: 'cd',
+    moduleTitle: 'Continuous Delivery & GitOps',
+    moduleColor: '#10B981',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // ccm-003: Reserved Instance Optimization
+  {
+    id: 'ccm-003',
+    title: 'Reserved Instance & Savings Plan Advisor',
+    content: `Analyze {{cloud_provider}} compute usage across {{accounts_description}} and generate Reserved Instance and Savings Plan purchase recommendations.
+
+Analysis scope: {{regions}} | Past {{analysis_period}} | Target coverage: {{target_coverage}}%
+
+**Analysis steps:**
+
+1. **Steady-state identification**: Find instance types running at ≥ {{utilization_threshold}}% uptime that are NOT dev/ephemeral environments (filter by tag: {{env_exclude_tag}}).
+
+2. **Coverage gap**: Current RI/SP coverage is {{current_coverage}}%. Target: {{target_coverage}}%. Identify the workloads accounting for the gap.
+
+3. **Purchase recommendations table**:
+| Workload | Instance Type | Qty | Term | Payment | On-Demand/yr | Reserved/yr | Savings/yr | Break-Even |
+|----------|--------------|-----|------|---------|-------------|------------|-----------|-----------|
+
+For each row, compare 1-year vs. 3-year terms and No Upfront vs. Partial Upfront vs. All Upfront.
+
+4. **Risk flags**:
+   - Auto-scaling groups with tag {{auto_scaling_tag}}: recommend Compute Savings Plans instead of RIs
+   - Workloads with < {{min_utilization}}% utilization variance: safe to commit
+   - Workloads with > {{max_utilization_variance}}% variance: recommend On-Demand or Spot instead
+
+5. **Prioritized purchase sequence**: Rank by annual savings potential. Top 5 purchases to make first.
+
+6. **Harness CCM governance**: Generate cost policy gates that alert when on-demand spend in {{alert_scope}} exceeds \${{monthly_alert_threshold}}/month.
+
+Output: Recommendation table, total projected annual savings, implementation checklist, and the CCM alert policy YAML.`,
+    variables: [
+      { id: 'v1', name: 'cloud_provider', label: 'Cloud Provider', placeholder: 'Select provider', type: 'dropdown', options: ['AWS', 'Azure', 'GCP', 'Multi-cloud (AWS + Azure)'] },
+      { id: 'v2', name: 'accounts_description', label: 'Accounts Scope', placeholder: 'e.g., all production accounts, or specific account IDs', type: 'text' },
+      { id: 'v3', name: 'regions', label: 'Regions', placeholder: 'e.g., us-east-1, eu-west-1', type: 'text' },
+      { id: 'v4', name: 'analysis_period', label: 'Analysis Period', placeholder: 'Select period', type: 'dropdown', options: ['30 days', '60 days', '90 days', '6 months'] },
+      { id: 'v5', name: 'utilization_threshold', label: 'Steady-State Uptime Threshold (%)', placeholder: 'e.g., 80', type: 'text', defaultValue: '80' },
+      { id: 'v6', name: 'env_exclude_tag', label: 'Env Tag to Exclude', placeholder: 'e.g., environment=dev', type: 'text', defaultValue: 'environment=dev' },
+      { id: 'v7', name: 'current_coverage', label: 'Current RI/SP Coverage (%)', placeholder: 'e.g., 40', type: 'text' },
+      { id: 'v8', name: 'target_coverage', label: 'Target RI/SP Coverage (%)', placeholder: 'e.g., 75', type: 'text', defaultValue: '75' },
+      { id: 'v9', name: 'auto_scaling_tag', label: 'Auto-Scaling Group Tag', placeholder: 'e.g., aws:autoscaling:groupName', type: 'text' },
+      { id: 'v10', name: 'min_utilization', label: 'Min Stable Utilization (%)', placeholder: 'e.g., 60', type: 'text', defaultValue: '60' },
+      { id: 'v11', name: 'max_utilization_variance', label: 'Max Acceptable Variance (%)', placeholder: 'e.g., 30', type: 'text', defaultValue: '30' },
+      { id: 'v12', name: 'alert_scope', label: 'Alert Scope (account/tag)', placeholder: 'e.g., production account', type: 'text' },
+      { id: 'v13', name: 'monthly_alert_threshold', label: 'Monthly Alert Threshold ($)', placeholder: 'e.g., 5000', type: 'text' },
+    ],
+    tags: ['reserved-instances', 'savings-plans', 'cost-optimization', 'finops', 'cloud-spend', 'commitment'],
+    subUseCaseId: 'ccm-right-sizing',
+    subUseCaseTitle: 'Resource Right-Sizing',
+    useCaseId: 'ccm-cost-optimization',
+    useCaseTitle: 'Cost Optimization',
+    moduleId: 'ccm',
+    moduleTitle: 'Cloud Cost Management',
+    moduleColor: '#EF4444',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // sto-003: DAST API Security Testing
+  {
+    id: 'sto-003',
+    title: 'DAST API Security Testing Pipeline',
+    content: `Integrate dynamic application security testing (DAST) for the {{service_name}} API into the Harness STO pipeline.
+
+API: {{api_type}} | Spec: {{spec_location}} | Target: {{target_url}} ({{target_env}})
+
+**Harness STO DAST step configuration:**
+
+Tool: {{dast_tool}}
+Scan mode: {{scan_mode}}
+Authentication: {{auth_type}}
+
+**Security gates:**
+- Block on: Critical severity findings (fail the pipeline)
+- Warn on: High severity findings (allow with notification to {{security_team}})
+- Report only: Medium and below
+
+**OWASP Top 10 checks to enforce:**
+- A01 Broken Access Control: Test {{auth_endpoints}} for unauthorized access (401/403 bypass attempts)
+- A02 Cryptographic Failures: Verify TLS 1.2+ and no sensitive data in responses
+- A03 Injection: Fuzz all input parameters across {{input_endpoints}} with SQLi, XSS, command injection payloads
+- A05 Security Misconfiguration: Check for exposed debug endpoints, verbose error messages, missing security headers
+- A07 Auth & Session Failures: Test session token entropy, expiry, and invalidation on logout
+
+**Exclusions:** {{exclude_paths}}
+
+**Remediation workflow:**
+- On critical/high finding: Auto-create Jira ticket in {{jira_project}} with: tool, severity, endpoint, CWE ID, recommended fix
+- Exemption process: Requires approval from {{security_team}} + documented business justification in the Jira ticket
+- Re-scan after fix: Automated re-scan triggered when Jira ticket transitions to "In Review"
+
+Provide the Harness STO pipeline step YAML, the {{dast_tool}} configuration file, and the Jira auto-creation webhook payload.`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-api', type: 'text' },
+      { id: 'v2', name: 'api_type', label: 'API Type', placeholder: 'Select type', type: 'dropdown', options: ['REST', 'GraphQL', 'gRPC', 'REST + GraphQL'] },
+      { id: 'v3', name: 'spec_location', label: 'API Spec Location', placeholder: 'e.g., openapi.yaml, GraphQL introspection endpoint', type: 'text' },
+      { id: 'v4', name: 'target_url', label: 'Target URL', placeholder: 'e.g., https://staging-api.myapp.com', type: 'text' },
+      { id: 'v5', name: 'target_env', label: 'Target Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Staging', 'Pre-production', 'Production (passive scan)'] },
+      { id: 'v6', name: 'dast_tool', label: 'DAST Tool', placeholder: 'Select tool', type: 'dropdown', options: ['OWASP ZAP', 'StackHawk', 'Burp Suite Enterprise', 'Veracode DAST'] },
+      { id: 'v7', name: 'scan_mode', label: 'Scan Mode', placeholder: 'Select mode', type: 'dropdown', options: ['Baseline (passive only)', 'API scan (active)', 'Full scan'] },
+      { id: 'v8', name: 'auth_type', label: 'Authentication Type', placeholder: 'Select auth', type: 'dropdown', options: ['API key (header)', 'OAuth2 client credentials', 'Basic auth', 'JWT Bearer token', 'No auth (public API)'] },
+      { id: 'v9', name: 'auth_endpoints', label: 'Auth-Protected Endpoints to Test', placeholder: 'e.g., /api/v1/users, /api/v1/payments', type: 'text' },
+      { id: 'v10', name: 'input_endpoints', label: 'Input Endpoints for Fuzzing', placeholder: 'e.g., /api/v1/search, /api/v1/orders', type: 'text' },
+      { id: 'v11', name: 'exclude_paths', label: 'Paths to Exclude', placeholder: 'e.g., /health, /metrics, /swagger', type: 'text' },
+      { id: 'v12', name: 'security_team', label: 'Security Team (approver)', placeholder: 'e.g., appsec-team', type: 'text' },
+      { id: 'v13', name: 'jira_project', label: 'Jira Project Key', placeholder: 'e.g., SEC', type: 'text' },
+    ],
+    tags: ['dast', 'api-security', 'owasp', 'sto', 'zap', 'security-testing'],
+    subUseCaseId: 'sto-sast',
+    subUseCaseTitle: 'SAST Integration',
+    useCaseId: 'sto-scanning',
+    useCaseTitle: 'Security Scanning',
+    moduleId: 'sto',
+    moduleTitle: 'Security Testing Orchestration',
+    moduleColor: '#8B5CF6',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // srm-003: Incident Alert Triage
+  {
+    id: 'srm-003',
+    title: 'Incident Alert Triage & Root Cause Diagnosis',
+    content: `Triage the current incident for {{service_name}} and guide me through a structured root cause analysis.
+
+**Incident details:**
+Alert: {{alert_name}} fired at {{alert_time}} | Severity: {{severity}} | Environments: {{environments}}
+Symptoms: {{symptom_description}}
+
+**Step 1: Blast radius**
+- Which services depend on {{service_name}}? List them and their current error rates vs. baseline.
+- Estimated users/requests affected per minute based on observed traffic.
+
+**Step 2: Timeline reconstruction**
+- Last deployment to {{service_name}}: when, what changed (diff summary), who deployed
+- Last config/infrastructure change (env vars, secrets, scaling events)
+- Any correlated alerts or anomalies in the {{lookback_window}} before the incident
+
+**Step 3: Ranked hypotheses**
+List the top 3 most likely root causes, ordered by probability:
+1. [Hypothesis] — Supporting evidence — Disconfirming evidence — Next diagnostic step
+2. [Hypothesis] — Supporting evidence — Disconfirming evidence — Next diagnostic step
+3. [Hypothesis] — Supporting evidence — Disconfirming evidence — Next diagnostic step
+
+**Step 4: Immediate mitigations (choose one)**
+- Option A (fastest): [action] — confidence: [%] — risk: [Low/Med/High]
+- Option B (safest): [action] — confidence: [%] — risk: [Low/Med/High]
+- Rollback decision: YES/NO with reasoning
+
+**Step 5: Diagnostic commands**
+Provide copy-paste diagnostic commands for {{platform}} to confirm/rule out the top hypothesis:
+- Check 1: [command]
+- Check 2: [command]
+- Check 3: [command]
+
+Format the output as a triage runbook ready to paste into {{incident_tool}}.`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'alert_name', label: 'Alert Name', placeholder: 'e.g., HighErrorRate_payment-service', type: 'text' },
+      { id: 'v3', name: 'alert_time', label: 'Alert Time', placeholder: 'e.g., 2025-06-12 14:32 UTC', type: 'text' },
+      { id: 'v4', name: 'severity', label: 'Severity', placeholder: 'Select severity', type: 'dropdown', options: ['P1 - Critical', 'P2 - High', 'P3 - Medium'] },
+      { id: 'v5', name: 'environments', label: 'Affected Environments', placeholder: 'e.g., production-us-east', type: 'text' },
+      { id: 'v6', name: 'symptom_description', label: 'Symptom Description', placeholder: 'e.g., Error rate spiked to 15%, P99 latency > 5s', type: 'textarea' },
+      { id: 'v7', name: 'lookback_window', label: 'Pre-incident Lookback Window', placeholder: 'Select window', type: 'dropdown', options: ['15 minutes', '30 minutes', '1 hour', '2 hours'] },
+      { id: 'v8', name: 'platform', label: 'Infrastructure Platform', placeholder: 'Select platform', type: 'dropdown', options: ['Kubernetes (kubectl)', 'AWS ECS', 'AWS Lambda', 'GCP Cloud Run', 'Azure Container Apps'] },
+      { id: 'v9', name: 'incident_tool', label: 'Incident Management Tool', placeholder: 'Select tool', type: 'dropdown', options: ['PagerDuty', 'OpsGenie', 'Jira Service Management', 'Slack incident channel'] },
+    ],
+    tags: ['incident', 'triage', 'rca', 'sre', 'on-call', 'debugging'],
+    subUseCaseId: 'srm-incident',
+    subUseCaseTitle: 'Incident Detection & Response',
+    useCaseId: 'srm-monitoring',
+    useCaseTitle: 'Service Monitoring',
+    moduleId: 'srm',
+    moduleTitle: 'Service Reliability Management',
+    moduleColor: '#14B8A6',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // srm-004: On-Call Handover
+  {
+    id: 'srm-004',
+    title: 'On-Call Shift Handover Report',
+    content: `Generate an end-of-shift handover report for the {{team_name}} on-call rotation.
+
+Outgoing: {{outgoing_engineer}} | Incoming: {{incoming_engineer}}
+Shift: {{shift_start}} → {{shift_end}} | Services owned: {{service_list}}
+
+---
+
+## On-Call Handover — {{team_name}} — {{shift_end}}
+
+### 1. Incidents This Shift
+{{incidents_summary}}
+
+For each incident produce:
+| Incident | Start | Duration | Severity | Status | Open Action Items |
+|----------|-------|----------|----------|--------|------------------|
+
+### 2. Currently Open Alerts
+Active alerts right now: {{active_alerts}}
+Known noisy / ignorable alerts (don't page on these): {{ignore_list}}
+Scheduled maintenance windows upcoming: {{maintenance_windows}}
+
+### 3. Deployments In Flight
+Services with active or pending deployments: {{in_flight_deployments}}
+Expected completion: {{deployment_eta}}
+Contact if issues arise: {{deployment_contacts}}
+
+### 4. Elevated Risk — Watch List
+Services that behaved abnormally this shift but did NOT trigger a page:
+{{watchlist}}
+What to watch for and why it's elevated: {{watch_reasoning}}
+
+### 5. Action Items for Incoming Engineer
+| Priority | Action | Owner | Due |
+|----------|--------|-------|-----|
+| P1 | ... | {{incoming_engineer}} | ASAP |
+
+### 6. Slack Summary (post to {{ops_channel}})
+> Shift handover complete. Key items:
+> • [bullet 1]
+> • [bullet 2]
+> • [bullet 3]
+> Incoming: @{{incoming_engineer}} — ping me if anything needs context.`,
+    variables: [
+      { id: 'v1', name: 'team_name', label: 'Team Name', placeholder: 'e.g., Platform SRE', type: 'text' },
+      { id: 'v2', name: 'outgoing_engineer', label: 'Outgoing Engineer', placeholder: 'e.g., @alice', type: 'text' },
+      { id: 'v3', name: 'incoming_engineer', label: 'Incoming Engineer', placeholder: 'e.g., @bob', type: 'text' },
+      { id: 'v4', name: 'shift_start', label: 'Shift Start', placeholder: 'e.g., 2025-06-12 08:00 UTC', type: 'text' },
+      { id: 'v5', name: 'shift_end', label: 'Shift End', placeholder: 'e.g., 2025-06-12 20:00 UTC', type: 'text' },
+      { id: 'v6', name: 'service_list', label: 'Services Owned', placeholder: 'e.g., payment-service, auth-service, api-gateway', type: 'text' },
+      { id: 'v7', name: 'incidents_summary', label: 'Incidents This Shift', placeholder: 'Describe any incidents that occurred', type: 'textarea' },
+      { id: 'v8', name: 'active_alerts', label: 'Currently Active Alerts', placeholder: 'e.g., None, or list active alert names', type: 'text', defaultValue: 'None' },
+      { id: 'v9', name: 'ignore_list', label: 'Known Noisy Alerts to Ignore', placeholder: 'e.g., DiskUsage_staging — known flap, ticket #1234', type: 'text' },
+      { id: 'v10', name: 'maintenance_windows', label: 'Upcoming Maintenance Windows', placeholder: 'e.g., DB maintenance 2025-06-13 02:00–04:00 UTC', type: 'text' },
+      { id: 'v11', name: 'in_flight_deployments', label: 'Deployments In Flight', placeholder: 'e.g., payment-service v2.1.4 deploying to production', type: 'text' },
+      { id: 'v12', name: 'deployment_eta', label: 'Deployment ETA', placeholder: 'e.g., Completes ~21:30 UTC', type: 'text' },
+      { id: 'v13', name: 'deployment_contacts', label: 'Deployment Contacts', placeholder: 'e.g., @charlie (payment team)', type: 'text' },
+      { id: 'v14', name: 'watchlist', label: 'Elevated Risk Services', placeholder: 'e.g., inventory-service — higher than normal DB query times', type: 'text' },
+      { id: 'v15', name: 'watch_reasoning', label: 'Watch Reasoning', placeholder: 'Explain what to look for', type: 'textarea' },
+      { id: 'v16', name: 'ops_channel', label: 'Ops Slack Channel', placeholder: 'e.g., #platform-ops', type: 'text' },
+    ],
+    tags: ['on-call', 'handover', 'sre', 'incident', 'shift-report', 'operations'],
+    subUseCaseId: 'srm-incident',
+    subUseCaseTitle: 'Incident Detection & Response',
+    useCaseId: 'srm-monitoring',
+    useCaseTitle: 'Service Monitoring',
+    moduleId: 'srm',
+    moduleTitle: 'Service Reliability Management',
+    moduleColor: '#14B8A6',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // srm-005: Service Runbook Generator
+  {
+    id: 'srm-005',
+    title: 'Service Operational Runbook Generator',
+    content: `Generate a complete operational runbook for {{service_name}} to guide on-call engineers through any incident.
+
+Service: {{service_name}} | Team: {{team_name}} | Stack: {{tech_stack}}
+Dependencies: {{dependencies}} | SLO: {{availability_slo}}% availability, {{latency_slo}}ms P95
+
+---
+
+# {{service_name}} Operational Runbook
+
+## 1. Service Overview
+- **What it does**: [Generate 2-sentence description based on service name and stack]
+- **Architecture**: [Key components, data flow, external dependencies: {{dependencies}}]
+- **Entry points**: primary API endpoint, internal gRPC interfaces, async consumers
+- **Data stores**: [databases, caches, queues used]
+
+## 2. Health Check Procedures
+| Check | Command / URL | Expected Result | Anomaly Signal |
+|-------|--------------|-----------------|----------------|
+| Liveness | {{health_endpoint}}/health | HTTP 200 | Non-200 or timeout |
+| Readiness | {{health_endpoint}}/ready | HTTP 200 | HTTP 503 |
+| Key metrics | {{metrics_dashboard}} | Within SLO | Error rate > 1%, P95 > {{latency_slo}}ms |
+
+## 3. Common Failure Modes
+| Symptom | Likely Cause | Diagnose | Resolve | Escalate If |
+|---------|-------------|---------|---------|------------|
+| High error rate | Upstream dependency down | Check {{dependencies}} health | [auto-generated steps] | Persists > 5 min |
+| Latency spike | DB slow queries / overload | Check slow query log | Scale DB read replicas | Cascade spreading |
+| OOM / crashes | Memory leak / config issue | kubectl top pods | Rolling restart | Recurring within 1h |
+| Deployment regression | Bad release | Harness rollback pipeline | Trigger rollback | Confirm with team |
+
+## 4. Escalation Procedure
+- **On-call rotation**: {{oncall_rotation}} (PagerDuty service: {{pd_service}})
+- **L1 → L2 escalation**: After {{l2_escalation_mins}} minutes unresolved → {{l2_team}}
+- **Declare P1 when**: {{p1_criteria}}
+
+## 5. Recovery Playbooks
+\`\`\`bash
+# Restart service
+{{restart_command}}
+
+# Rollback via Harness pipeline
+# Pipeline: {{rollback_pipeline}}
+# Trigger via Harness UI or CLI: harness pipeline execute --pipeline-id {{rollback_pipeline}}
+\`\`\`
+
+## 6. Post-Incident Checklist
+- [ ] Service restored to SLO
+- [ ] Incident ticket updated with timeline
+- [ ] Rollback (if applied) confirmed stable for 30 minutes
+- [ ] Postmortem scheduled (for P1/P2)
+- [ ] Runbook updated with any new failure modes discovered`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'team_name', label: 'Owning Team', placeholder: 'e.g., Payments Platform', type: 'text' },
+      { id: 'v3', name: 'tech_stack', label: 'Tech Stack', placeholder: 'e.g., Node.js + PostgreSQL + Redis', type: 'text' },
+      { id: 'v4', name: 'dependencies', label: 'External Dependencies', placeholder: 'e.g., auth-service, stripe-api, postgres-primary', type: 'text' },
+      { id: 'v5', name: 'availability_slo', label: 'Availability SLO (%)', placeholder: 'e.g., 99.9', type: 'text', defaultValue: '99.9' },
+      { id: 'v6', name: 'latency_slo', label: 'P95 Latency SLO (ms)', placeholder: 'e.g., 300', type: 'text', defaultValue: '300' },
+      { id: 'v7', name: 'health_endpoint', label: 'Health Endpoint Base URL', placeholder: 'e.g., https://payment-service.internal', type: 'text' },
+      { id: 'v8', name: 'metrics_dashboard', label: 'Metrics Dashboard Link', placeholder: 'e.g., https://app.datadoghq.com/dashboard/payment-svc', type: 'text' },
+      { id: 'v9', name: 'oncall_rotation', label: 'On-Call Rotation Name', placeholder: 'e.g., Platform SRE Rotation', type: 'text' },
+      { id: 'v10', name: 'pd_service', label: 'PagerDuty Service ID', placeholder: 'e.g., PABC123', type: 'text' },
+      { id: 'v11', name: 'l2_escalation_mins', label: 'L2 Escalation Timeout (minutes)', placeholder: 'e.g., 30', type: 'text', defaultValue: '30' },
+      { id: 'v12', name: 'l2_team', label: 'L2 Team / Contact', placeholder: 'e.g., @payments-leads', type: 'text' },
+      { id: 'v13', name: 'p1_criteria', label: 'P1 Declaration Criteria', placeholder: 'e.g., error rate > 5% for > 2 minutes, or payment failures', type: 'text' },
+      { id: 'v14', name: 'restart_command', label: 'Restart Command', placeholder: 'e.g., kubectl rollout restart deployment/payment-service -n production', type: 'text' },
+      { id: 'v15', name: 'rollback_pipeline', label: 'Harness Rollback Pipeline ID', placeholder: 'e.g., payment-service-rollback', type: 'text' },
+    ],
+    tags: ['runbook', 'sre', 'on-call', 'operations', 'incident-response', 'documentation'],
+    subUseCaseId: 'srm-incident',
+    subUseCaseTitle: 'Incident Detection & Response',
+    useCaseId: 'srm-monitoring',
+    useCaseTitle: 'Service Monitoring',
+    moduleId: 'srm',
+    moduleTitle: 'Service Reliability Management',
+    moduleColor: '#14B8A6',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // idp-004: Service Documentation Generator
+  {
+    id: 'idp-004',
+    title: 'Service Catalog Documentation Generator',
+    content: `Generate a complete documentation package for {{service_name}} to publish in the Harness Internal Developer Portal.
+
+Service: {{service_name}} | Team: {{team_name}} | Type: {{service_type}}
+Stack: {{tech_stack}} | Repo: {{repo_url}} | Environments: {{environments}}
+
+---
+
+**Artifact 1: catalog-info.yaml** (Backstage-compatible)
+
+\`\`\`yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: {{service_name}}
+  title: "{{service_title}}"
+  description: "[Generated: what this service does in one sentence]"
+  tags: [{{tech_stack_tags}}]
+  links:
+    - url: {{runbook_url}}
+      title: Runbook
+      icon: docs
+    - url: {{dashboard_url}}
+      title: Metrics Dashboard
+      icon: dashboard
+  annotations:
+    harness.io/project-url: "{{harness_project_url}}"
+    pagerduty.com/service-id: "{{pd_service_id}}"
+spec:
+  type: {{service_type}}
+  lifecycle: production
+  owner: {{team_name}}
+  system: {{system_name}}
+\`\`\`
+
+**Artifact 2: README sections**
+
+## Overview
+[Generate 2 paragraphs: what the service does, why it exists, key business value]
+
+## Architecture
+[Key components, data flow diagram (text), external dependencies: {{dependencies}}]
+
+## Getting Started
+Prerequisites: {{prerequisites}}
+\`\`\`bash
+{{setup_commands}}
+\`\`\`
+
+## API Reference
+Base URL: {{api_base_url}}
+Auth: {{auth_method}}
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|--------------|
+[Generate key endpoints based on service type: {{service_type}}]
+
+## Configuration
+Key environment variables and their purpose:
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+
+## Ownership & Support
+- Team: {{team_name}}
+- On-call: {{oncall_contact}}
+- Slack: {{slack_channel}}
+- Escalation: {{escalation_contact}}`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'service_title', label: 'Service Display Title', placeholder: 'e.g., Payment Processing Service', type: 'text' },
+      { id: 'v3', name: 'team_name', label: 'Owning Team', placeholder: 'e.g., Payments Platform', type: 'text' },
+      { id: 'v4', name: 'service_type', label: 'Service Type', placeholder: 'Select type', type: 'dropdown', options: ['service', 'api', 'library', 'website', 'data-pipeline', 'worker'] },
+      { id: 'v5', name: 'tech_stack', label: 'Tech Stack', placeholder: 'e.g., Node.js, PostgreSQL, Redis', type: 'text' },
+      { id: 'v6', name: 'tech_stack_tags', label: 'Tech Tags (comma-separated)', placeholder: 'e.g., nodejs, postgresql, redis', type: 'text' },
+      { id: 'v7', name: 'repo_url', label: 'Repository URL', placeholder: 'e.g., https://github.com/org/payment-service', type: 'text' },
+      { id: 'v8', name: 'environments', label: 'Environments', placeholder: 'e.g., dev, staging, production', type: 'text' },
+      { id: 'v9', name: 'system_name', label: 'System / Domain', placeholder: 'e.g., checkout-platform', type: 'text' },
+      { id: 'v10', name: 'dependencies', label: 'External Dependencies', placeholder: 'e.g., auth-service, stripe, postgres', type: 'text' },
+      { id: 'v11', name: 'prerequisites', label: 'Dev Prerequisites', placeholder: 'e.g., Node 20+, Docker, Harness CLI', type: 'text' },
+      { id: 'v12', name: 'setup_commands', label: 'Setup Commands', placeholder: 'e.g., npm install && npm run dev', type: 'textarea' },
+      { id: 'v13', name: 'api_base_url', label: 'API Base URL', placeholder: 'e.g., https://api.myapp.com/v1', type: 'text' },
+      { id: 'v14', name: 'auth_method', label: 'Auth Method', placeholder: 'e.g., Bearer JWT', type: 'text' },
+      { id: 'v15', name: 'runbook_url', label: 'Runbook URL', placeholder: 'e.g., https://wiki.company.com/runbooks/payment-service', type: 'text' },
+      { id: 'v16', name: 'dashboard_url', label: 'Metrics Dashboard URL', placeholder: 'e.g., Datadog dashboard link', type: 'text' },
+      { id: 'v17', name: 'harness_project_url', label: 'Harness Project URL', placeholder: 'e.g., https://app.harness.io/ng/account/...', type: 'text' },
+      { id: 'v18', name: 'pd_service_id', label: 'PagerDuty Service ID', placeholder: 'e.g., PABC123', type: 'text' },
+      { id: 'v19', name: 'oncall_contact', label: 'On-Call Contact', placeholder: 'e.g., @platform-oncall', type: 'text' },
+      { id: 'v20', name: 'slack_channel', label: 'Slack Channel', placeholder: 'e.g., #payment-team', type: 'text' },
+      { id: 'v21', name: 'escalation_contact', label: 'Escalation Contact', placeholder: 'e.g., @payments-leads', type: 'text' },
+    ],
+    tags: ['documentation', 'idp', 'service-catalog', 'backstage', 'readme', 'developer-portal'],
+    subUseCaseId: 'idp-self-service',
+    subUseCaseTitle: 'Self-Service Workflows',
+    useCaseId: 'idp-self-service',
+    useCaseTitle: 'Self-Service Platform',
+    moduleId: 'idp',
+    moduleTitle: 'Internal Developer Portal',
+    moduleColor: '#0EA5E9',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // idp-005: ADR Generator
+  {
+    id: 'idp-005',
+    title: 'Architecture Decision Record (ADR) Generator',
+    content: `Generate an Architecture Decision Record (ADR) for the following engineering decision.
+
+Organization: {{organization_name}} | Team: {{team_name}} | Date: {{decision_date}}
+ADR Number: {{adr_number}} | Status: {{status}}
+
+---
+
+# ADR-{{adr_number}}: {{decision_title}}
+
+**Date**: {{decision_date}}
+**Status**: {{status}}
+**Deciders**: {{team_name}}
+
+## Context
+
+{{problem_statement}}
+
+**Constraints and forces:**
+{{constraints}}
+
+**Why this decision is needed now**: [Generate based on problem statement — urgency, deadline, dependency]
+
+## Decision
+
+We will: {{proposed_solution}}
+
+## Considered Alternatives
+
+| Option | Description | Pros | Cons | Why Not Selected |
+|--------|-------------|------|------|-----------------|
+| Option A: {{alternative_1}} | [Generate description] | [pros] | [cons] | [rejection reason] |
+| Option B: {{alternative_2}} | [Generate description] | [pros] | [cons] | [rejection reason] |
+| **Selected: {{proposed_solution}}** | [Generate description] | [pros] | [cons] | **SELECTED** |
+
+## Consequences
+
+**Positive outcomes:**
+- [Generate 3–4 benefits of the decision]
+
+**Negative trade-offs:**
+- [Generate 2–3 trade-offs and how to mitigate them]
+
+**Technical debt introduced:**
+- [Any shortcuts or workarounds required by this decision]
+
+## Implementation Plan
+
+Target sprint: {{implementation_sprint}}
+
+Steps:
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+Dependencies: [What must be in place before implementation]
+
+## Review
+
+Review date: {{review_date}}
+Revisit trigger: {{review_trigger}}
+
+Related ADRs: [any related decisions]`,
+    variables: [
+      { id: 'v1', name: 'organization_name', label: 'Organization Name', placeholder: 'e.g., Acme Corp', type: 'text' },
+      { id: 'v2', name: 'team_name', label: 'Proposing Team', placeholder: 'e.g., Platform Engineering', type: 'text' },
+      { id: 'v3', name: 'decision_date', label: 'Decision Date', placeholder: 'e.g., 2025-06-12', type: 'text' },
+      { id: 'v4', name: 'adr_number', label: 'ADR Number', placeholder: 'e.g., 0042', type: 'text' },
+      { id: 'v5', name: 'decision_title', label: 'Decision Title', placeholder: 'e.g., Adopt OpenTelemetry for distributed tracing', type: 'text' },
+      { id: 'v6', name: 'status', label: 'Status', placeholder: 'Select status', type: 'dropdown', options: ['Proposed', 'Accepted', 'Deprecated', 'Superseded'] },
+      { id: 'v7', name: 'problem_statement', label: 'Problem Statement', placeholder: 'Describe the problem or need this decision addresses', type: 'textarea' },
+      { id: 'v8', name: 'constraints', label: 'Constraints / Forces', placeholder: 'e.g., must work with existing Kubernetes setup, team expertise in Go', type: 'textarea' },
+      { id: 'v9', name: 'proposed_solution', label: 'Proposed Solution', placeholder: 'e.g., use OpenTelemetry SDK with Jaeger backend', type: 'text' },
+      { id: 'v10', name: 'alternative_1', label: 'Alternative Option A', placeholder: 'e.g., Vendor-specific tracing (Datadog APM)', type: 'text' },
+      { id: 'v11', name: 'alternative_2', label: 'Alternative Option B', placeholder: 'e.g., No distributed tracing (logs only)', type: 'text' },
+      { id: 'v12', name: 'implementation_sprint', label: 'Implementation Sprint', placeholder: 'e.g., Sprint 24', type: 'text' },
+      { id: 'v13', name: 'review_date', label: 'Review Date', placeholder: 'e.g., 2025-12-01', type: 'text' },
+      { id: 'v14', name: 'review_trigger', label: 'Review Trigger', placeholder: 'e.g., if latency overhead exceeds 5%, or CNCF landscape changes', type: 'text' },
+    ],
+    tags: ['adr', 'architecture', 'documentation', 'decision-record', 'engineering', 'idp'],
+    subUseCaseId: 'idp-service-mgmt',
+    subUseCaseTitle: 'Service Management',
+    useCaseId: 'idp-service-mgmt',
+    useCaseTitle: 'Service Management',
+    moduleId: 'idp',
+    moduleTitle: 'Internal Developer Portal',
+    moduleColor: '#0EA5E9',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // idp-006: Developer Onboarding Workflow
+  {
+    id: 'idp-006',
+    title: 'New Developer Onboarding Workflow',
+    content: `Design an automated Day 1 onboarding workflow in Harness IDP for new engineers.
+
+New engineer: {{engineer_name}} | Role: {{role}} | Team: {{team_name}}
+Start date: {{start_date}} | Stack: {{tech_stack}}
+
+---
+
+**Harness IDP self-service workflow: "New Engineer Onboarding"**
+
+**Trigger**: HR system webhook on hire confirmation (or manual trigger by engineering manager)
+
+**Step 1 — Access provisioning (automated, Day 1 morning)**
+- [ ] Add {{engineer_name}} to GitHub org → team: {{github_team}}
+- [ ] Create Harness account with role: {{default_harness_role}} in project: {{harness_project}}
+- [ ] Add to Jira project {{jira_project}} with {{jira_role}} permissions
+- [ ] Add to Slack channels: {{slack_channels}}
+- [ ] Send welcome email with portal links and onboarding guide
+
+**Step 2 — Cloud Development Environment (Day 1)**
+- [ ] Provision CDE workspace from template: {{cde_template}}
+- [ ] Pre-installed tools: {{required_tools}}
+- [ ] Auto-clone repositories: {{starter_repos}}
+- [ ] Run setup script: \`{{setup_script}}\`
+- [ ] Verify: CDE health check passes, engineer can run the app locally
+
+**Step 3 — Knowledge base tasks (Week 1 Jira tickets)**
+Create the following tickets in {{jira_project}} assigned to {{engineer_name}}:
+1. "Deploy first change via {{team_name}} CI/CD pipeline" (Story, 2 pts)
+2. "Complete security awareness training" (Task — link: {{security_training_url}})
+3. "Review on-call runbooks for {{service_list}}" (Task)
+4. "Shadow one on-call shift with {{buddy_engineer}}" (Task)
+
+**Step 4 — Buddy system**
+- Assign buddy: {{buddy_engineer}}
+- Schedule 30-min daily syncs for first 2 weeks (auto-create calendar events)
+
+**Completion criteria (end of Week 2):**
+- [ ] First PR merged to {{starter_repo}}
+- [ ] First pipeline triggered and passed
+- [ ] Introduction posted in {{team_channel}}
+
+Provide the Harness IDP workflow YAML, the welcome email template, and the Jira epic structure.`,
+    variables: [
+      { id: 'v1', name: 'engineer_name', label: 'Engineer Name', placeholder: 'e.g., Jane Smith', type: 'text' },
+      { id: 'v2', name: 'role', label: 'Role', placeholder: 'Select role', type: 'dropdown', options: ['Software Engineer', 'Senior Software Engineer', 'Staff Engineer', 'DevOps Engineer', 'SRE', 'Platform Engineer'] },
+      { id: 'v3', name: 'team_name', label: 'Team Name', placeholder: 'e.g., Payments Platform', type: 'text' },
+      { id: 'v4', name: 'start_date', label: 'Start Date', placeholder: 'e.g., 2025-07-01', type: 'text' },
+      { id: 'v5', name: 'tech_stack', label: 'Primary Tech Stack', placeholder: 'e.g., Java + Kubernetes + PostgreSQL', type: 'text' },
+      { id: 'v6', name: 'github_team', label: 'GitHub Team', placeholder: 'e.g., payments-platform', type: 'text' },
+      { id: 'v7', name: 'default_harness_role', label: 'Harness Default Role', placeholder: 'Select role', type: 'dropdown', options: ['Developer', 'Pipeline Executor', 'Account Viewer', 'Custom Role'] },
+      { id: 'v8', name: 'harness_project', label: 'Harness Project', placeholder: 'e.g., platform-engineering', type: 'text' },
+      { id: 'v9', name: 'jira_project', label: 'Jira Project Key', placeholder: 'e.g., PAYM', type: 'text' },
+      { id: 'v10', name: 'jira_role', label: 'Jira Role', placeholder: 'e.g., Developer', type: 'text' },
+      { id: 'v11', name: 'slack_channels', label: 'Slack Channels to Join', placeholder: 'e.g., #engineering, #payments-team, #on-call', type: 'text' },
+      { id: 'v12', name: 'cde_template', label: 'CDE Workspace Template', placeholder: 'e.g., java-microservice-workspace', type: 'text' },
+      { id: 'v13', name: 'required_tools', label: 'Required Tools', placeholder: 'e.g., JDK 21, kubectl, Harness CLI, Docker', type: 'text' },
+      { id: 'v14', name: 'starter_repos', label: 'Repositories to Clone', placeholder: 'e.g., github.com/org/payment-service, github.com/org/k8s-configs', type: 'text' },
+      { id: 'v15', name: 'setup_script', label: 'Setup Script', placeholder: 'e.g., ./scripts/dev-setup.sh', type: 'text' },
+      { id: 'v16', name: 'security_training_url', label: 'Security Training URL', placeholder: 'e.g., https://training.company.com/security', type: 'text' },
+      { id: 'v17', name: 'service_list', label: 'Services to Learn', placeholder: 'e.g., payment-service, auth-service', type: 'text' },
+      { id: 'v18', name: 'buddy_engineer', label: 'Buddy Engineer', placeholder: 'e.g., @carlos', type: 'text' },
+      { id: 'v19', name: 'starter_repo', label: 'First PR Repository', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v20', name: 'team_channel', label: 'Team Slack Channel', placeholder: 'e.g., #payments-team', type: 'text' },
+    ],
+    tags: ['onboarding', 'idp', 'developer-experience', 'automation', 'workflow', 'cde'],
+    subUseCaseId: 'idp-self-service',
+    subUseCaseTitle: 'Self-Service Workflows',
+    useCaseId: 'idp-self-service',
+    useCaseTitle: 'Self-Service Platform',
+    moduleId: 'idp',
+    moduleTitle: 'Internal Developer Portal',
+    moduleColor: '#0EA5E9',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // sei-004: Sprint Planning
+  {
+    id: 'sei-004',
+    title: 'Sprint Planning & Capacity Forecast',
+    content: `Run a data-driven sprint planning session for {{team_name}} using Harness SEI engineering insights.
+
+Sprint {{sprint_number}} | Duration: {{sprint_length}} weeks | Team size: {{team_size}} engineers
+
+---
+
+**1. Capacity calculation**
+
+Available engineer-days:
+- Total: {{team_size}} × {{sprint_days}} days = [calculated total]
+- Less planned PTO/leave: {{planned_leave}} days
+- Less meeting overhead ({{meeting_overhead_pct}}%): [calculated]
+- **Net capacity**: [calculated] engineer-days
+
+Historical throughput (last 3 sprints):
+- Median velocity: {{velocity_p50}} story points/sprint
+- Points per engineer-day: [calculated]
+- **Recommended commitment**: [calculated] points (±10% buffer)
+
+**2. Backlog health check**
+
+Stories ready for sprint (acceptance criteria done): {{ready_stories}}
+Stories needing grooming: {{ungroomed_stories}} — flag these for a 30-minute refinement session before planning
+Carry-over from Sprint {{prev_sprint}}: {{carry_over_points}} points — include in commitment
+
+Risk flags:
+- Stories > {{large_story_threshold}} points: [list] → recommend splitting before committing
+- Stories with unresolved dependencies: {{blocked_stories}}
+- P1/P2 bugs that must be addressed: {{critical_bugs}}
+
+**3. Recommended sprint composition**
+
+| Category | Target % | Story Points | Rationale |
+|----------|----------|-------------|-----------|
+| New features | {{feature_pct}}% | [calculated] | Product roadmap |
+| Bug fixes | {{bug_pct}}% | [calculated] | Quality baseline |
+| Tech debt | {{tech_debt_pct}}% | [calculated] | Sustainability |
+| On-call buffer | {{oncall_buffer}}% | [calculated] | Unplanned work |
+
+**4. Sprint goal (generate)**
+Based on the top priority stories, write a one-sentence sprint goal.
+
+**5. Slack kickoff message (post to {{team_channel}})**
+> Sprint {{sprint_number}} starts today! Goal: [generated]. Commitment: [X] pts. Key deliverables: [top 3]. Let's go! 🚀`,
+    variables: [
+      { id: 'v1', name: 'team_name', label: 'Team Name', placeholder: 'e.g., Platform Engineering', type: 'text' },
+      { id: 'v2', name: 'sprint_number', label: 'Sprint Number', placeholder: 'e.g., 47', type: 'text' },
+      { id: 'v3', name: 'sprint_length', label: 'Sprint Length (weeks)', placeholder: 'Select length', type: 'dropdown', options: ['1 week', '2 weeks', '3 weeks'] },
+      { id: 'v4', name: 'sprint_days', label: 'Working Days in Sprint', placeholder: 'e.g., 10', type: 'text', defaultValue: '10' },
+      { id: 'v5', name: 'team_size', label: 'Team Size (engineers)', placeholder: 'e.g., 6', type: 'text' },
+      { id: 'v6', name: 'planned_leave', label: 'Planned PTO/Leave (engineer-days)', placeholder: 'e.g., 3', type: 'text', defaultValue: '0' },
+      { id: 'v7', name: 'meeting_overhead_pct', label: 'Meeting Overhead (%)', placeholder: 'e.g., 20', type: 'text', defaultValue: '20' },
+      { id: 'v8', name: 'velocity_p50', label: 'Median Velocity (story points)', placeholder: 'e.g., 42', type: 'text' },
+      { id: 'v9', name: 'ready_stories', label: 'Stories Ready for Sprint', placeholder: 'e.g., 8 stories, 38 points', type: 'text' },
+      { id: 'v10', name: 'ungroomed_stories', label: 'Ungroomed Stories Count', placeholder: 'e.g., 4', type: 'text', defaultValue: '0' },
+      { id: 'v11', name: 'prev_sprint', label: 'Previous Sprint Number', placeholder: 'e.g., 46', type: 'text' },
+      { id: 'v12', name: 'carry_over_points', label: 'Carry-Over Points', placeholder: 'e.g., 5', type: 'text', defaultValue: '0' },
+      { id: 'v13', name: 'large_story_threshold', label: 'Large Story Threshold (points)', placeholder: 'e.g., 8', type: 'text', defaultValue: '8' },
+      { id: 'v14', name: 'blocked_stories', label: 'Blocked Stories', placeholder: 'e.g., PROJ-123 blocked on API from auth-team', type: 'text', defaultValue: 'None' },
+      { id: 'v15', name: 'critical_bugs', label: 'Critical Bugs (P1/P2)', placeholder: 'e.g., BUG-456, BUG-789', type: 'text', defaultValue: 'None' },
+      { id: 'v16', name: 'feature_pct', label: 'Feature Work %', placeholder: 'e.g., 60', type: 'text', defaultValue: '60' },
+      { id: 'v17', name: 'bug_pct', label: 'Bug Fix %', placeholder: 'e.g., 20', type: 'text', defaultValue: '20' },
+      { id: 'v18', name: 'tech_debt_pct', label: 'Tech Debt %', placeholder: 'e.g., 10', type: 'text', defaultValue: '10' },
+      { id: 'v19', name: 'oncall_buffer', label: 'On-Call Buffer %', placeholder: 'e.g., 10', type: 'text', defaultValue: '10' },
+      { id: 'v20', name: 'team_channel', label: 'Team Slack Channel', placeholder: 'e.g., #platform-team', type: 'text' },
+    ],
+    tags: ['sprint-planning', 'capacity', 'velocity', 'agile', 'sei', 'engineering-metrics'],
+    subUseCaseId: 'sei-agile',
+    subUseCaseTitle: 'Agile Planning',
+    useCaseId: 'sei-agile',
+    useCaseTitle: 'Agile & Planning',
+    moduleId: 'sei',
+    moduleTitle: 'Software Engineering Insights',
+    moduleColor: '#3B82F6',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // sei-005: Release Readiness Assessment
+  {
+    id: 'sei-005',
+    title: 'Release Readiness Assessment',
+    content: `Assess whether {{service_name}} v{{version}} is ready to release to {{target_environment}}.
+
+Change summary: {{change_summary}} | Target date: {{target_date}}
+
+---
+
+## Release Readiness Report — {{service_name}} v{{version}}
+
+**Overall verdict**: 🔴 / 🟡 / 🟢 [Generate based on checks below]
+
+---
+
+### Code Quality
+| Check | Threshold | Actual | Status |
+|-------|-----------|--------|--------|
+| All PRs merged to {{release_branch}} | 100% | {{pr_status}} | ✅/❌ |
+| Code coverage | ≥ {{min_coverage}}% | {{current_coverage}}% | ✅/❌ |
+| SAST / STO scan | 0 critical issues | {{sast_status}} | ✅/❌ |
+| Dependency CVEs | 0 critical/high | {{cve_status}} | ✅/❌ |
+
+### Testing
+| Check | Threshold | Actual | Status |
+|-------|-----------|--------|--------|
+| Unit test pass rate | ≥ {{min_pass_rate}}% | {{unit_test_pass_rate}}% | ✅/❌ |
+| Integration tests ({{staging_env}}) | All passing | {{integration_status}} | ✅/❌ |
+| P95 latency (perf test) | < {{latency_slo}}ms | {{perf_p95}}ms | ✅/❌ |
+| Regression suite | All passing | {{regression_status}} | ✅/❌ |
+
+### Infrastructure & Config
+| Check | Status | Notes |
+|-------|--------|-------|
+| Feature flags configured | {{ff_status}} | |
+| DB migrations backward-compatible | {{migration_status}} | |
+| Rollback plan documented | {{rollback_doc_status}} | Link: {{rollback_doc_link}} |
+| Secrets/env vars updated | {{config_status}} | |
+
+### Communication
+| Check | Status |
+|-------|--------|
+| Release notes drafted | {{release_notes_status}} |
+| Stakeholders notified | {{stakeholder_notify_status}} |
+| On-call team briefed | {{oncall_brief_status}} |
+
+---
+
+### Blocking Items (must resolve before release)
+[List any ❌ items with owner and resolution ETA]
+
+### Recommendation
+**GO / NO-GO** — [Generate rationale based on check results]
+
+If NO-GO: estimated unblock date based on outstanding items.`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'version', label: 'Version', placeholder: 'e.g., 2.4.0', type: 'text' },
+      { id: 'v3', name: 'target_environment', label: 'Target Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Production', 'Pre-production', 'Staging'] },
+      { id: 'v4', name: 'target_date', label: 'Target Release Date', placeholder: 'e.g., 2025-07-01', type: 'text' },
+      { id: 'v5', name: 'change_summary', label: 'Change Summary', placeholder: 'Brief description of what this release contains', type: 'textarea' },
+      { id: 'v6', name: 'release_branch', label: 'Release Branch', placeholder: 'e.g., release/2.4.0', type: 'text' },
+      { id: 'v7', name: 'min_coverage', label: 'Coverage Threshold (%)', placeholder: 'e.g., 80', type: 'text', defaultValue: '80' },
+      { id: 'v8', name: 'current_coverage', label: 'Current Coverage (%)', placeholder: 'e.g., 84', type: 'text' },
+      { id: 'v9', name: 'pr_status', label: 'PR Merge Status', placeholder: 'e.g., All merged / 2 pending', type: 'text' },
+      { id: 'v10', name: 'sast_status', label: 'SAST Scan Status', placeholder: 'e.g., Passed / 1 critical open', type: 'text' },
+      { id: 'v11', name: 'cve_status', label: 'CVE Scan Status', placeholder: 'e.g., Clean / 2 high pending', type: 'text' },
+      { id: 'v12', name: 'min_pass_rate', label: 'Min Test Pass Rate (%)', placeholder: 'e.g., 99', type: 'text', defaultValue: '99' },
+      { id: 'v13', name: 'unit_test_pass_rate', label: 'Unit Test Pass Rate (%)', placeholder: 'e.g., 99.5', type: 'text' },
+      { id: 'v14', name: 'staging_env', label: 'Staging Environment', placeholder: 'e.g., staging-us-east', type: 'text' },
+      { id: 'v15', name: 'integration_status', label: 'Integration Test Status', placeholder: 'e.g., All passing / 3 failing', type: 'text' },
+      { id: 'v16', name: 'latency_slo', label: 'P95 Latency SLO (ms)', placeholder: 'e.g., 300', type: 'text', defaultValue: '300' },
+      { id: 'v17', name: 'perf_p95', label: 'Actual P95 Latency (ms)', placeholder: 'e.g., 245', type: 'text' },
+      { id: 'v18', name: 'regression_status', label: 'Regression Test Status', placeholder: 'e.g., All passing', type: 'text' },
+      { id: 'v19', name: 'ff_status', label: 'Feature Flags Status', placeholder: 'e.g., Configured & tested', type: 'text' },
+      { id: 'v20', name: 'migration_status', label: 'DB Migration Status', placeholder: 'e.g., Backward compatible / N/A', type: 'text' },
+      { id: 'v21', name: 'rollback_doc_status', label: 'Rollback Plan Status', placeholder: 'e.g., Documented', type: 'text' },
+      { id: 'v22', name: 'rollback_doc_link', label: 'Rollback Plan Link', placeholder: 'e.g., https://wiki.company.com/rollback/payment-v2.4.0', type: 'text' },
+      { id: 'v23', name: 'config_status', label: 'Config/Secrets Status', placeholder: 'e.g., Updated in all envs', type: 'text' },
+      { id: 'v24', name: 'release_notes_status', label: 'Release Notes Status', placeholder: 'e.g., Draft ready / Not started', type: 'text' },
+      { id: 'v25', name: 'stakeholder_notify_status', label: 'Stakeholder Notification', placeholder: 'e.g., Notified / Pending', type: 'text' },
+      { id: 'v26', name: 'oncall_brief_status', label: 'On-Call Brief Status', placeholder: 'e.g., Briefed / Scheduled', type: 'text' },
+    ],
+    tags: ['release', 'readiness', 'checklist', 'go-no-go', 'quality-gate', 'sei'],
+    subUseCaseId: 'sei-metrics',
+    subUseCaseTitle: 'Engineering Metrics',
+    useCaseId: 'sei-metrics',
+    useCaseTitle: 'Engineering Insights & Metrics',
+    moduleId: 'sei',
+    moduleTitle: 'Software Engineering Insights',
+    moduleColor: '#3B82F6',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // ce-003: Chaos GameDay Planner
+  {
+    id: 'ce-003',
+    title: 'Chaos Engineering GameDay Planner',
+    content: `Plan a full chaos engineering GameDay for {{team_name}} targeting {{service_name}}.
+
+Date: {{gameday_date}} | Duration: {{duration}} hours | Participants: {{participants}}
+
+---
+
+## Chaos GameDay Runbook — {{service_name}}
+
+**Primary hypothesis**: {{hypothesis}}
+**Success criteria**: {{success_criteria}}
+**Blast radius limit**: {{blast_radius_limit}}
+
+---
+
+### Pre-Game Checklist (30 minutes before start)
+- [ ] Confirm all monitoring dashboards are live: {{dashboards}}
+- [ ] Verify rollback procedures are tested and accessible
+- [ ] Brief all participants on hypothesis, success criteria, and emergency stop
+- [ ] **Emergency stop signal**: {{stop_signal}} — anyone can call stop, no questions asked
+- [ ] Confirm on-call engineer {{oncall_engineer}} is available throughout
+
+---
+
+### Experiment 1: {{experiment_1_name}} ({{exp1_duration}} minutes)
+
+**Harness Chaos step configuration**:
+\`\`\`yaml
+type: {{chaos_step_1}}
+target: {{target_1}}
+duration: {{exp1_duration}}m
+\`\`\`
+
+**Expected behavior**: {{expected_1}}
+**Metrics to watch**: {{observation_metrics}}
+**Abort criteria**: Any SLO breach — error rate > {{slo_threshold}}% or P95 > {{latency_threshold}}ms
+**Rollback**: {{rollback_1}}
+
+*Observation window: {{observation_window}} minutes after experiment ends*
+
+---
+
+### Experiment 2: {{experiment_2_name}} ({{exp2_duration}} minutes)
+
+**Harness Chaos step**: {{chaos_step_2}}
+**Target**: {{target_2}}
+**Expected behavior**: {{expected_2}}
+**Rollback**: {{rollback_2}}
+
+*Observation window: {{observation_window}} minutes after experiment ends*
+
+---
+
+### Results Capture Template
+
+| Metric | Baseline | During Exp 1 | During Exp 2 | Recovery Time |
+|--------|----------|-------------|-------------|--------------|
+| Error rate | | | | |
+| P95 latency | | | | |
+| Throughput | | | | |
+| [Custom metric] | | | | |
+
+**Did the system behave as hypothesized?** YES / NO
+**Surprises discovered**:
+**Action items** (create as Harness chaos experiment improvements):
+
+---
+
+### Post-Game Retrospective (30 minutes)
+1. What confirmed our hypothesis?
+2. What surprised us?
+3. What weaknesses did we find that need fixing before next GameDay?
+4. Schedule follow-up experiments: [date]`,
+    variables: [
+      { id: 'v1', name: 'team_name', label: 'Team Name', placeholder: 'e.g., Platform SRE', type: 'text' },
+      { id: 'v2', name: 'service_name', label: 'Target Service', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v3', name: 'gameday_date', label: 'GameDay Date', placeholder: 'e.g., 2025-07-15', type: 'text' },
+      { id: 'v4', name: 'duration', label: 'Duration (hours)', placeholder: 'e.g., 3', type: 'text', defaultValue: '3' },
+      { id: 'v5', name: 'participants', label: 'Participants', placeholder: 'e.g., @alice, @bob, @charlie (product observer)', type: 'text' },
+      { id: 'v6', name: 'hypothesis', label: 'Primary Hypothesis', placeholder: 'e.g., payment-service will gracefully degrade when its Redis cache is unavailable', type: 'textarea' },
+      { id: 'v7', name: 'success_criteria', label: 'Success Criteria', placeholder: 'e.g., error rate stays < 2% and user-facing latency < 2x baseline during cache outage', type: 'text' },
+      { id: 'v8', name: 'blast_radius_limit', label: 'Blast Radius Limit', placeholder: 'e.g., staging only, or 5% of production traffic', type: 'text' },
+      { id: 'v9', name: 'dashboards', label: 'Monitoring Dashboards', placeholder: 'e.g., Datadog SLO dashboard, Harness CV panel', type: 'text' },
+      { id: 'v10', name: 'stop_signal', label: 'Emergency Stop Signal', placeholder: 'e.g., "STOP GAMEDAY" in #chaos-channel, or red button in Harness chaos UI', type: 'text' },
+      { id: 'v11', name: 'oncall_engineer', label: 'On-Call Engineer', placeholder: 'e.g., @diana', type: 'text' },
+      { id: 'v12', name: 'experiment_1_name', label: 'Experiment 1 Name', placeholder: 'e.g., Redis cache pod failure', type: 'text' },
+      { id: 'v13', name: 'exp1_duration', label: 'Experiment 1 Duration (minutes)', placeholder: 'e.g., 10', type: 'text', defaultValue: '10' },
+      { id: 'v14', name: 'chaos_step_1', label: 'Chaos Step 1 (Harness fault type)', placeholder: 'e.g., PodDelete, NetworkChaos, CPUHog', type: 'dropdown', options: ['PodDelete', 'PodCPUHog', 'PodMemoryHog', 'NetworkLatency', 'NetworkPacketLoss', 'NodeDrain', 'ServiceKill', 'DiskFill'] },
+      { id: 'v15', name: 'target_1', label: 'Experiment 1 Target', placeholder: 'e.g., redis-cache pods in namespace production', type: 'text' },
+      { id: 'v16', name: 'expected_1', label: 'Expected Behavior (Exp 1)', placeholder: 'e.g., service falls back to DB, latency increases < 2x, no errors', type: 'text' },
+      { id: 'v17', name: 'rollback_1', label: 'Rollback Action (Exp 1)', placeholder: 'e.g., Harness auto-restores pods; manual: kubectl apply -f redis-restore.yaml', type: 'text' },
+      { id: 'v18', name: 'experiment_2_name', label: 'Experiment 2 Name', placeholder: 'e.g., 50% network packet loss', type: 'text' },
+      { id: 'v19', name: 'exp2_duration', label: 'Experiment 2 Duration (minutes)', placeholder: 'e.g., 15', type: 'text', defaultValue: '15' },
+      { id: 'v20', name: 'chaos_step_2', label: 'Chaos Step 2 (fault type)', placeholder: 'e.g., NetworkPacketLoss', type: 'dropdown', options: ['PodDelete', 'PodCPUHog', 'PodMemoryHog', 'NetworkLatency', 'NetworkPacketLoss', 'NodeDrain', 'ServiceKill', 'DiskFill'] },
+      { id: 'v21', name: 'target_2', label: 'Experiment 2 Target', placeholder: 'e.g., payment-service pods', type: 'text' },
+      { id: 'v22', name: 'expected_2', label: 'Expected Behavior (Exp 2)', placeholder: 'e.g., circuit breaker triggers within 30s, requests queue up', type: 'text' },
+      { id: 'v23', name: 'rollback_2', label: 'Rollback Action (Exp 2)', placeholder: 'e.g., Stop chaos experiment in Harness UI', type: 'text' },
+      { id: 'v24', name: 'observation_metrics', label: 'Observation Metrics', placeholder: 'e.g., error_rate, p95_latency, cache_hit_rate, circuit_breaker_state', type: 'text' },
+      { id: 'v25', name: 'observation_window', label: 'Post-Experiment Observation Window (minutes)', placeholder: 'e.g., 10', type: 'text', defaultValue: '10' },
+      { id: 'v26', name: 'slo_threshold', label: 'Error Rate Abort Threshold (%)', placeholder: 'e.g., 5', type: 'text', defaultValue: '5' },
+      { id: 'v27', name: 'latency_threshold', label: 'Latency Abort Threshold (ms)', placeholder: 'e.g., 2000', type: 'text', defaultValue: '2000' },
+    ],
+    tags: ['chaos-engineering', 'gameday', 'resilience', 'sre', 'reliability', 'experiments'],
+    subUseCaseId: 'ce-experiments',
+    subUseCaseTitle: 'Chaos Experiments',
+    useCaseId: 'ce-experiments',
+    useCaseTitle: 'Chaos Experiments',
+    moduleId: 'ce',
+    moduleTitle: 'Chaos Engineering',
+    moduleColor: '#EC4899',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // iacm-004: Pre-Deployment Cost Estimation
+  {
+    id: 'iacm-004',
+    title: 'Pre-Deployment Terraform Cost Estimation',
+    content: `Estimate the infrastructure cost impact of pending Terraform changes in workspace {{workspace_name}} before approving deployment.
+
+Workspace: {{workspace_name}} | PR: {{pr_reference}} | Environment: {{environment}} | Provider: {{cloud_provider}}
+
+---
+
+**Cost estimation report using Infracost:**
+
+**Step 1: Cost diff**
+Run \`infracost diff --path {{tf_path}}\` against the current state and summarize:
+
+| Resource | Action | Current Monthly | New Monthly | Delta ($/month) |
+|----------|--------|----------------|------------|----------------|
+| [new resources] | Add | $0 | $X | +$X |
+| [modified resources] | Change | $X | $Y | ±$Z |
+| [removed resources] | Destroy | $X | $0 | -$X |
+| **Total** | | **\${{current_monthly}}** | **[calculated]** | **[±delta]** |
+
+**Step 2: Anomaly flags**
+
+Review each added/modified resource:
+- Resources costing > \${{single_resource_threshold}}/month: [list] → require additional approval from {{finops_approver}}
+- Total monthly increase > \${{total_increase_threshold}}: trigger {{approval_gate}} approval gate
+- Flagged resource types (high-cost patterns): {{flagged_resource_types}}
+
+**Step 3: Tagging compliance**
+Required tags: {{required_tags}}
+
+Resources missing required tags:
+| Resource | Missing Tags |
+|----------|-------------|
+[List non-compliant resources or "All resources compliant"]
+
+**Step 4: Cost governance OPA policy**
+Generate a Harness OPA policy that:
+- Blocks the Terraform plan approval if monthly delta > \${{cost_block_threshold}}
+- Blocks if any resource is missing tags from: {{required_tags}}
+- Warns (but allows) if any single resource costs > \${{single_resource_threshold}}/month
+
+\`\`\`rego
+# Harness OPA cost governance policy
+package harness.iacm.cost
+# [Generate policy YAML]
+\`\`\`
+
+**Recommendation**: APPROVE / HOLD for review / BLOCK
+Justification: [based on delta and compliance findings]`,
+    variables: [
+      { id: 'v1', name: 'workspace_name', label: 'IaCM Workspace Name', placeholder: 'e.g., production-infra', type: 'text' },
+      { id: 'v2', name: 'pr_reference', label: 'PR / Branch Reference', placeholder: 'e.g., PR #142 or feature/add-rds-replica', type: 'text' },
+      { id: 'v3', name: 'environment', label: 'Target Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Production', 'Staging', 'Development', 'Shared Services'] },
+      { id: 'v4', name: 'cloud_provider', label: 'Cloud Provider', placeholder: 'Select provider', type: 'dropdown', options: ['AWS', 'GCP', 'Azure', 'Multi-cloud'] },
+      { id: 'v5', name: 'tf_path', label: 'Terraform Root Path', placeholder: 'e.g., ./terraform/production', type: 'text', defaultValue: '.' },
+      { id: 'v6', name: 'current_monthly', label: 'Current Monthly Cost ($)', placeholder: 'e.g., 4200', type: 'text' },
+      { id: 'v7', name: 'single_resource_threshold', label: 'Single Resource Alert Threshold ($/month)', placeholder: 'e.g., 500', type: 'text', defaultValue: '500' },
+      { id: 'v8', name: 'total_increase_threshold', label: 'Total Increase Alert Threshold ($/month)', placeholder: 'e.g., 1000', type: 'text', defaultValue: '1000' },
+      { id: 'v9', name: 'finops_approver', label: 'FinOps Approver', placeholder: 'e.g., finops-team', type: 'text' },
+      { id: 'v10', name: 'approval_gate', label: 'Approval Gate Name', placeholder: 'e.g., FinOps Review', type: 'text' },
+      { id: 'v11', name: 'flagged_resource_types', label: 'Flagged Resource Types', placeholder: 'e.g., aws_rds_instance, aws_elasticache_cluster, aws_nat_gateway', type: 'text' },
+      { id: 'v12', name: 'required_tags', label: 'Required Tags', placeholder: 'e.g., env, team, cost-center, project', type: 'text' },
+      { id: 'v13', name: 'cost_block_threshold', label: 'Cost Block Threshold ($/month)', placeholder: 'e.g., 2000', type: 'text', defaultValue: '2000' },
+    ],
+    tags: ['terraform', 'cost-estimation', 'infracost', 'opa', 'iacm', 'finops', 'governance'],
+    subUseCaseId: 'iacm-governance',
+    subUseCaseTitle: 'Infrastructure Governance',
+    useCaseId: 'iacm-governance',
+    useCaseTitle: 'Terraform Governance',
+    moduleId: 'iacm',
+    moduleTitle: 'Infrastructure as Code Management',
+    moduleColor: '#475569',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
 ]
 
 function enrich(raw: RawPrompt): Prompt {

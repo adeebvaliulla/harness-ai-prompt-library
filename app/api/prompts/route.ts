@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Create new prompt
-    const { title, content, variables, tags, subUseCaseId, subUseCaseTitle, useCaseId, useCaseTitle, moduleId } = body
+    const { title, content, variables, tags, subUseCaseId, subUseCaseTitle, useCaseId, useCaseTitle, moduleId,
+      description, agentType, mode, availability, mcpRequirements, complexity, sdlcStage, personas } = body
 
     if (!title || !content || !moduleId) {
       return NextResponse.json({ error: 'title, content, and moduleId are required' }, { status: 400 })
@@ -38,6 +39,14 @@ export async function POST(req: NextRequest) {
       moduleId,
       moduleTitle: mod.name,
       moduleColor: mod.color,
+      description: description ?? '',
+      agentType: agentType ?? 'devops',
+      mode: mode ?? 'standard',
+      availability: availability ?? 'ga',
+      mcpRequirements: mcpRequirements ?? undefined,
+      complexity: complexity ?? 'intermediate',
+      sdlcStage: sdlcStage ?? 'build',
+      personas: personas ?? ['devops-engineer'],
     })
 
     return NextResponse.json(prompt, { status: 201 })

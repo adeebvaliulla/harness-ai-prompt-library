@@ -1,4 +1,4 @@
-import { AgentType, PromptMode, PromptAvailability, RawPrompt } from './types'
+import { AgentType, PromptMode, PromptAvailability, PromptComplexity, SdlcStage, PersonaTag, RawPrompt } from './types'
 
 export interface PromptMetadata {
   description: string
@@ -6,6 +6,9 @@ export interface PromptMetadata {
   mode: PromptMode
   availability: PromptAvailability
   mcpRequirements?: string[]
+  complexity: PromptComplexity
+  sdlcStage: SdlcStage
+  personas: PersonaTag[]
 }
 
 export const PROMPT_METADATA: Record<string, PromptMetadata> = {
@@ -13,179 +16,216 @@ export const PROMPT_METADATA: Record<string, PromptMetadata> = {
   'ci-001': {
     description: 'Generates a complete CI pipeline YAML with build, test, caching, and failure notification stages tailored to your stack and runtime.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'build', personas: ['devops-engineer', 'developer'],
   },
   'ci-002': {
     description: 'Configures a Docker build-and-push step with multi-platform support, layer caching, vulnerability scanning, and registry authentication.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'build', personas: ['devops-engineer', 'developer'],
   },
   'ci-003': {
     description: 'Sets up parallel test execution with Harness Test Intelligence to identify and skip unchanged tests, dramatically reducing pipeline runtime.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'test', personas: ['devops-engineer', 'developer'],
   },
   'ci-004': {
     description: 'Designs a multi-layer caching strategy for your build tool to eliminate redundant dependency downloads and accelerate every subsequent build.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'build', personas: ['devops-engineer'],
   },
 
   // ── CD ──────────────────────────────────────────────────────────────────────
   'cd-001': {
     description: 'Designs a full canary deployment pipeline with traffic splitting, Continuous Verification gates, and automated rollback on SLO breach.',
     agentType: 'devops', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'release', personas: ['devops-engineer', 'sre'],
   },
   'cd-002': {
     description: 'Builds a zero-downtime blue-green deployment with automated traffic switching, health validation, and instant rollback capability.',
     agentType: 'devops', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'release', personas: ['devops-engineer', 'sre'],
   },
   'cd-003': {
     description: 'Configures a Kubernetes rolling deployment with liveness/readiness probes, HPA scaling, and Continuous Verification gates before promotion.',
     agentType: 'devops', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'release', personas: ['devops-engineer', 'platform-engineer'],
   },
 
   // ── Feature Management & Experimentation ────────────────────────────────────
   'ff-001': {
     description: 'Designs a staged feature rollout plan with user targeting rules, traffic percentage controls, and automatic kill switches for safe releases.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'release', personas: ['devops-engineer', 'developer', 'team-lead'],
   },
   'ff-002': {
     description: 'Configures an A/B testing experiment with control/treatment traffic splits, metric tracking, and statistical significance validation.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'release', personas: ['developer', 'team-lead'],
   },
 
   // ── CCM ─────────────────────────────────────────────────────────────────────
   'ccm-001': {
     description: 'Analyzes your cloud resources to identify over-provisioned workloads and generates right-sizing recommendations with projected cost savings.',
     agentType: 'finops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'cost', personas: ['finops-analyst', 'platform-engineer'],
   },
   'ccm-002': {
     description: 'Sets up budget thresholds, anomaly detection rules, and automated cost governance alerts for your cloud accounts.',
     agentType: 'finops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'cost', personas: ['finops-analyst', 'team-lead'],
   },
 
   // ── STO ─────────────────────────────────────────────────────────────────────
   'sto-001': {
     description: 'Integrates SAST scanning into your CI pipeline with severity-based quality gates and actionable developer-facing remediation guidance.',
     agentType: 'appsec', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'secure', personas: ['security-engineer', 'devops-engineer'],
   },
   'sto-002': {
     description: 'Adds container vulnerability scanning to your pipeline with SBOM generation, CVE thresholds, and policy-based enforcement gates.',
     agentType: 'appsec', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'secure', personas: ['security-engineer', 'devops-engineer'],
   },
 
   // ── Chaos Engineering ────────────────────────────────────────────────────────
   'ce-001': {
     description: 'Designs a GameDay-ready pod failure experiment with configurable blast radius controls and real-time SLO impact monitoring.',
     agentType: 'reliability', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'test', personas: ['sre', 'platform-engineer'],
   },
   'ce-002': {
     description: 'Creates a network latency and packet loss simulation to validate service resilience, circuit breaker behavior, and graceful degradation.',
     agentType: 'reliability', mode: 'standard', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'test', personas: ['sre', 'platform-engineer'],
   },
 
   // ── SRM ─────────────────────────────────────────────────────────────────────
   'srm-001': {
     description: 'Defines SLIs, SLOs, and error budgets for your service with multi-window burn rate alerts and policy-based freeze workflows.',
     agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'intermediate', sdlcStage: 'monitor', personas: ['sre', 'platform-engineer'],
   },
   'srm-002': {
     description: 'Configures automated incident detection, on-call escalation routing, and runbook-driven response workflows to minimize MTTR.',
     agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'intermediate', sdlcStage: 'monitor', personas: ['sre', 'devops-engineer'],
   },
 
   // ── IDP ─────────────────────────────────────────────────────────────────────
   'idp-001': {
     description: 'Generates a Backstage-compatible service catalog template with ownership metadata, SLO links, and scaffolded CI/CD workflow starters.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'govern', personas: ['platform-engineer', 'devops-engineer'],
   },
   'idp-002': {
     description: 'Creates a self-service workflow that provisions ephemeral environments on demand with RBAC controls and TTL-based cleanup automation.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'build', personas: ['platform-engineer', 'developer'],
   },
   'idp-003': {
     description: 'Defines service maturity scorecard checks across reliability, security, observability, and operational readiness dimensions.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['platform-engineer', 'team-lead'],
   },
 
   // ── IaCM ────────────────────────────────────────────────────────────────────
   'iacm-001': {
     description: 'Sets up Terraform workspace configuration with remote state management, team RBAC controls, and module registry integration.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'build', personas: ['devops-engineer', 'platform-engineer'],
   },
   'iacm-002': {
     description: 'Configures scheduled drift detection for your Terraform workspaces with auto-remediation workflows and compliance reporting.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['devops-engineer', 'platform-engineer'],
   },
   'iacm-003': {
     description: 'Builds a Terraform change approval workflow with pre-deployment cost estimation, RBAC-based approvals, and full audit trail logging.',
     agentType: 'devops', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'govern', personas: ['devops-engineer', 'platform-engineer', 'team-lead'],
   },
 
   // ── SEI ─────────────────────────────────────────────────────────────────────
   'sei-001': {
     description: 'Sets up a DORA metrics dashboard tracking Deployment Frequency, Lead Time, Change Failure Rate, and MTTR across all your teams.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'monitor', personas: ['team-lead', 'platform-engineer'],
   },
   'sei-002': {
     description: 'Analyzes developer cycle time, code review throughput, and PR merge velocity to surface and quantify productivity bottlenecks.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'monitor', personas: ['team-lead'],
   },
   'sei-003': {
     description: 'Generates sprint velocity trends, engineering investment allocation breakdowns, and predictive capacity insights from your Jira data.',
     agentType: 'devops', mode: 'mcp', availability: 'q3',
     mcpRequirements: ['Jira'],
+    complexity: 'advanced', sdlcStage: 'plan', personas: ['team-lead'],
   },
 
   // ── CDE ─────────────────────────────────────────────────────────────────────
   'cde-001': {
     description: 'Configures on-demand cloud development environments with pre-installed tooling, auto-provisioning from Git, and cost-aware auto-hibernation.',
     agentType: 'coding', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'build', personas: ['developer', 'platform-engineer'],
   },
   'cde-002': {
     description: 'Defines a standardized workspace template with consistent toolchains, IDE extensions, and security policies enforced across your entire dev team.',
     agentType: 'coding', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'build', personas: ['platform-engineer', 'devops-engineer'],
   },
 
   // ── Artifact Registry ────────────────────────────────────────────────────────
   'ar-001': {
     description: 'Sets up a private Harness Artifact Registry with multi-format support (Docker, Helm, Maven, npm), RBAC controls, and cross-region replication.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'build', personas: ['devops-engineer', 'platform-engineer'],
   },
   'ar-002': {
     description: 'Configures artifact security scanning policies with CVE severity thresholds, license compliance checks, and SBOM attestation requirements.',
     agentType: 'appsec', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'secure', personas: ['security-engineer', 'devops-engineer'],
   },
 
   // ── SSCA ────────────────────────────────────────────────────────────────────
   'ssca-001': {
     description: 'Generates and manages SBOMs for your software artifacts with SLSA provenance tracking, artifact signing, and full supply chain visibility.',
     agentType: 'appsec', mode: 'standard', availability: 'q4',
+    complexity: 'advanced', sdlcStage: 'secure', personas: ['security-engineer', 'devops-engineer'],
   },
   'ssca-002': {
     description: 'Defines OPA-based supply chain security policies that enforce signing requirements, SLSA levels, and block non-compliant artifacts at every gate.',
     agentType: 'appsec', mode: 'standard', availability: 'q4',
+    complexity: 'advanced', sdlcStage: 'secure', personas: ['security-engineer', 'platform-engineer'],
   },
 
   // ── AI Ops ──────────────────────────────────────────────────────────────────
   'aiops-001': {
     description: 'Configures ML-based predictive failure analysis to detect anomalies in system metrics and trigger proactive alerts before outages occur.',
     agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'advanced', sdlcStage: 'monitor', personas: ['sre', 'platform-engineer'],
   },
   'aiops-002': {
     description: 'Sets up intelligent alert correlation to suppress noise, group related alerts by root cause, and surface only high-confidence actionable incidents.',
     agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'intermediate', sdlcStage: 'monitor', personas: ['sre', 'devops-engineer'],
   },
 
   // ── Enterprise Governance ────────────────────────────────────────────────────
   'enterprise-001': {
     description: 'Designs an attribute-based access control framework with dynamic permission evaluation, JIT access workflows, and identity provider integration.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['platform-engineer', 'team-lead'],
   },
   'enterprise-002': {
     description: 'Creates a git-based Policy as Code workflow with OPA rules, CI/CD enforcement gates, and version-controlled policy lifecycle management.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'govern', personas: ['platform-engineer', 'security-engineer'],
   },
   'enterprise-003': {
     description: 'Automates compliance monitoring, evidence collection, and audit reporting for SOC 2, PCI-DSS, and HIPAA regulatory requirements.',
     agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'govern', personas: ['security-engineer', 'team-lead'],
   },
 
   // ── MCP Prompts ─────────────────────────────────────────────────────────────
@@ -193,76 +233,181 @@ export const PROMPT_METADATA: Record<string, PromptMetadata> = {
     description: 'Cross-references failed Harness deployments with open Jira Sev-1 tickets and active Datadog alerts to surface the highest-priority incidents.',
     agentType: 'sre', mode: 'mcp', availability: 'q3',
     mcpRequirements: ['Datadog', 'Jira'],
+    complexity: 'advanced', sdlcStage: 'monitor', personas: ['sre', 'devops-engineer'],
   },
   'mcp-002': {
     description: 'Maps GitHub PRs merged in a given period to deployment health signals in Datadog, identifying which code changes caused reliability regressions.',
     agentType: 'sre', mode: 'mcp', availability: 'q3',
     mcpRequirements: ['GitHub', 'Datadog'],
+    complexity: 'advanced', sdlcStage: 'monitor', personas: ['sre', 'developer'],
   },
   'mcp-003': {
     description: 'Generates a complete postmortem document by combining Harness incident timeline, Datadog metrics, and linked Jira tickets into a structured report.',
     agentType: 'sre', mode: 'mcp', availability: 'q3',
     mcpRequirements: ['Datadog', 'Jira'],
+    complexity: 'advanced', sdlcStage: 'monitor', personas: ['sre', 'team-lead'],
   },
   'mcp-004': {
     description: 'Queries GitHub Security Advisories for vulnerabilities in your service dependencies and auto-generates OPA policy gates to block affected builds.',
     agentType: 'appsec', mode: 'mcp', availability: 'q4',
     mcpRequirements: ['GitHub'],
+    complexity: 'advanced', sdlcStage: 'secure', personas: ['security-engineer', 'devops-engineer'],
   },
   'mcp-005': {
     description: 'Analyzes Jira sprint data alongside Harness pipeline execution metrics to identify the engineering process bottlenecks slowing your deployments.',
     agentType: 'devops', mode: 'mcp', availability: 'q3',
     mcpRequirements: ['Jira'],
+    complexity: 'advanced', sdlcStage: 'plan', personas: ['team-lead', 'devops-engineer'],
+  },
+
+  // ── CI (new) ─────────────────────────────────────────────────────────────────
+  'ci-005': {
+    description: 'Builds a smart monorepo CI pipeline that detects changed services, constructs a dependency graph for shared libs, and runs only affected builds in parallel.',
+    agentType: 'devops', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'build', personas: ['devops-engineer', 'developer', 'platform-engineer'],
+  },
+
+  // ── CD (new) ─────────────────────────────────────────────────────────────────
+  'cd-004': {
+    description: 'Designs an end-to-end GitOps progressive delivery pipeline with Argo CD, per-environment overlays, canary analysis, and auto-rollback via Continuous Verification.',
+    agentType: 'devops', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'release', personas: ['devops-engineer', 'platform-engineer', 'sre'],
+  },
+
+  // ── CCM (new) ────────────────────────────────────────────────────────────────
+  'ccm-003': {
+    description: 'Analyzes steady-state compute usage across cloud accounts and generates prioritized Reserved Instance and Savings Plan purchase recommendations with ROI modeling.',
+    agentType: 'finops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'cost', personas: ['finops-analyst', 'platform-engineer', 'team-lead'],
+  },
+
+  // ── STO (new) ────────────────────────────────────────────────────────────────
+  'sto-003': {
+    description: 'Integrates DAST scanning (OWASP ZAP / StackHawk) into the Harness STO pipeline for REST/GraphQL APIs with OWASP Top 10 enforcement and Jira auto-ticket creation.',
+    agentType: 'appsec', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'secure', personas: ['security-engineer', 'devops-engineer'],
+  },
+
+  // ── SRM (new) ────────────────────────────────────────────────────────────────
+  'srm-003': {
+    description: 'Guides an on-call engineer through structured incident triage — blast radius assessment, timeline reconstruction, ranked hypotheses, and immediate mitigation actions.',
+    agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'intermediate', sdlcStage: 'monitor', personas: ['sre', 'devops-engineer'],
+  },
+  'srm-004': {
+    description: 'Generates a structured end-of-shift on-call handover report covering incidents, open alerts, in-flight deployments, elevated-risk services, and prioritized action items.',
+    agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'beginner', sdlcStage: 'monitor', personas: ['sre'],
+  },
+  'srm-005': {
+    description: 'Creates a complete service operational runbook with health checks, common failure modes, resolution steps, escalation paths, and recovery playbooks for on-call engineers.',
+    agentType: 'sre', mode: 'architect', availability: 'q3',
+    complexity: 'intermediate', sdlcStage: 'monitor', personas: ['sre', 'devops-engineer', 'platform-engineer'],
+  },
+
+  // ── IDP (new) ────────────────────────────────────────────────────────────────
+  'idp-004': {
+    description: 'Generates a complete service documentation package — Backstage catalog-info.yaml, README sections, and API reference — ready for publishing to the IDP service catalog.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'plan', personas: ['developer', 'platform-engineer', 'team-lead'],
+  },
+  'idp-005': {
+    description: 'Creates a fully structured Architecture Decision Record (ADR) with context, considered alternatives comparison table, consequences, and implementation plan.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'plan', personas: ['developer', 'platform-engineer', 'team-lead'],
+  },
+  'idp-006': {
+    description: 'Designs an automated developer onboarding workflow provisioning Git access, Harness permissions, a CDE workspace, and Jira onboarding tickets on Day 1.',
+    agentType: 'devops', mode: 'architect', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'plan', personas: ['platform-engineer', 'developer'],
+  },
+
+  // ── SEI (new) ────────────────────────────────────────────────────────────────
+  'sei-004': {
+    description: 'Runs a data-driven sprint planning session — capacity calculation, backlog health check, risk flagging, and recommended sprint composition by category.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'plan', personas: ['team-lead', 'developer'],
+  },
+  'sei-005': {
+    description: 'Evaluates service release readiness across code quality, test coverage, security scans, infrastructure changes, and stakeholder communication with a Red/Amber/Green score.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'release', personas: ['team-lead', 'devops-engineer', 'developer'],
+  },
+
+  // ── CE (new) ─────────────────────────────────────────────────────────────────
+  'ce-003': {
+    description: 'Plans a full chaos engineering GameDay — agenda, per-experiment runbooks with Harness Chaos steps, observation metrics, emergency stop criteria, and a results capture template.',
+    agentType: 'reliability', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'test', personas: ['sre', 'platform-engineer'],
+  },
+
+  // ── IaCM (new) ───────────────────────────────────────────────────────────────
+  'iacm-004': {
+    description: 'Estimates the monthly cost impact of pending Terraform changes using Infracost, flags budget anomalies, checks tag compliance, and generates a cost-gate OPA policy.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['devops-engineer', 'finops-analyst', 'platform-engineer'],
   },
 
   // ── FME: Flag Cleanup ────────────────────────────────────────────────────────
   'ff-cleanup-001': {
     description: 'Scans all feature flags in your project for zero-traffic, 100% rollout, and stale flags, and outputs a prioritized cleanup list with risk assessment.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'govern', personas: ['developer', 'team-lead'],
   },
   'ff-cleanup-002': {
     description: 'Produces a comprehensive flag audit including last modification date, traffic volume, code references, and business impact classification for each flag.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'govern', personas: ['developer', 'team-lead'],
   },
   'ff-cleanup-003': {
     description: 'Validates a specific flag for safe retirement by checking code references, dependencies, stakeholder approvals, and traffic history before providing a go/no-go.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['developer', 'devops-engineer'],
   },
   'ff-cleanup-004': {
     description: 'Creates a phased, risk-tiered cleanup plan for multiple stale flags with timelines, stakeholder coordination steps, and rollback procedures.',
     agentType: 'release', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'govern', personas: ['team-lead', 'devops-engineer'],
   },
   'ff-cleanup-005': {
     description: 'Designs and implements feature flag governance policies including mandatory expiration dates, owner validation, and automated compliance tracking.',
     agentType: 'release', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'govern', personas: ['team-lead', 'platform-engineer'],
   },
   'ff-cleanup-006': {
     description: 'Evaluates flag-related technical debt across a service — flag count, targeting complexity, performance impact, and code complexity introduced by conditionals.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['developer', 'team-lead'],
   },
   'ff-cleanup-007': {
     description: 'Sets up automated flag cleanup workflows with daily scans, owner notifications at 30/14/7 days before expiration, and safety-gated auto-archiving.',
     agentType: 'release', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'govern', personas: ['platform-engineer', 'devops-engineer'],
   },
   'ff-cleanup-008': {
     description: 'Plans coordinated feature flag cleanup across multiple teams with shared-flag identification, approval workflows, and conflict resolution procedures.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['team-lead', 'devops-engineer'],
   },
   'ff-cleanup-009': {
     description: 'Generates a compliance report flagging undocumented, orphaned, or policy-violating flags with a remediation plan for each violation.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['security-engineer', 'team-lead'],
   },
   'ff-cleanup-010': {
     description: 'Validates that a completed flag cleanup has not caused performance regressions, unexpected behavior, or monitoring gaps in production.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'govern', personas: ['developer', 'devops-engineer'],
   },
   'ff-cleanup-011': {
     description: 'Executes an emergency cleanup for flags causing performance degradation or security risks, with an immediate action plan and stakeholder communication.',
     agentType: 'release', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'govern', personas: ['developer', 'sre'],
   },
   'ff-cleanup-012': {
     description: 'Conducts a quarterly review of flag lifecycle patterns, team compliance, and cleanup policy effectiveness, and generates a cleanup calendar for the next quarter.',
     agentType: 'release', mode: 'architect', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'govern', personas: ['team-lead', 'platform-engineer'],
   },
 }
 
@@ -271,6 +416,9 @@ export const DEFAULT_METADATA: PromptMetadata = {
   agentType: 'devops',
   mode: 'standard',
   availability: 'ga',
+  complexity: 'intermediate',
+  sdlcStage: 'build',
+  personas: ['devops-engineer'],
 }
 
 // ── MCP-only prompts (full RawPrompt entries) ────────────────────────────────

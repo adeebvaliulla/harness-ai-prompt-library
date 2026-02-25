@@ -3,9 +3,9 @@
 // Replace with Supabase for persistence across restarts.
 
 import { Prompt } from './types'
-import { SAMPLE_PROMPTS } from './data'
+import { getAllPrompts } from './data'
 
-let prompts: Prompt[] = [...SAMPLE_PROMPTS]
+let prompts: Prompt[] = getAllPrompts()
 
 export function getPrompts(): Prompt[] {
   return prompts

@@ -392,7 +392,7 @@ export default function AdminPage() {
                   <StatCard title="Total Searches" value={analytics.totalSearches} icon={Search} />
                   <StatCard
                     title="Most Copied"
-                    value={analytics.topPrompts[0]?.title.slice(0, 24) + '…' ?? '—'}
+                    value={analytics.topPrompts[0] ? analytics.topPrompts[0].title.slice(0, 24) + '…' : '—'}
                     icon={Hash}
                     sub={analytics.topPrompts[0] ? `${analytics.topPrompts[0].count} copies` : undefined}
                   />
