@@ -214,6 +214,56 @@ export const PROMPT_METADATA: Record<string, PromptMetadata> = {
     agentType: 'devops', mode: 'mcp', availability: 'q3',
     mcpRequirements: ['Jira'],
   },
+
+  // ── FME: Flag Cleanup ────────────────────────────────────────────────────────
+  'ff-cleanup-001': {
+    description: 'Scans all feature flags in your project for zero-traffic, 100% rollout, and stale flags, and outputs a prioritized cleanup list with risk assessment.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-002': {
+    description: 'Produces a comprehensive flag audit including last modification date, traffic volume, code references, and business impact classification for each flag.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-003': {
+    description: 'Validates a specific flag for safe retirement by checking code references, dependencies, stakeholder approvals, and traffic history before providing a go/no-go.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-004': {
+    description: 'Creates a phased, risk-tiered cleanup plan for multiple stale flags with timelines, stakeholder coordination steps, and rollback procedures.',
+    agentType: 'release', mode: 'architect', availability: 'ga',
+  },
+  'ff-cleanup-005': {
+    description: 'Designs and implements feature flag governance policies including mandatory expiration dates, owner validation, and automated compliance tracking.',
+    agentType: 'release', mode: 'architect', availability: 'ga',
+  },
+  'ff-cleanup-006': {
+    description: 'Evaluates flag-related technical debt across a service — flag count, targeting complexity, performance impact, and code complexity introduced by conditionals.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-007': {
+    description: 'Sets up automated flag cleanup workflows with daily scans, owner notifications at 30/14/7 days before expiration, and safety-gated auto-archiving.',
+    agentType: 'release', mode: 'architect', availability: 'ga',
+  },
+  'ff-cleanup-008': {
+    description: 'Plans coordinated feature flag cleanup across multiple teams with shared-flag identification, approval workflows, and conflict resolution procedures.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-009': {
+    description: 'Generates a compliance report flagging undocumented, orphaned, or policy-violating flags with a remediation plan for each violation.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-010': {
+    description: 'Validates that a completed flag cleanup has not caused performance regressions, unexpected behavior, or monitoring gaps in production.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-011': {
+    description: 'Executes an emergency cleanup for flags causing performance degradation or security risks, with an immediate action plan and stakeholder communication.',
+    agentType: 'release', mode: 'standard', availability: 'ga',
+  },
+  'ff-cleanup-012': {
+    description: 'Conducts a quarterly review of flag lifecycle patterns, team compliance, and cleanup policy effectiveness, and generates a cleanup calendar for the next quarter.',
+    agentType: 'release', mode: 'architect', availability: 'ga',
+  },
 }
 
 export const DEFAULT_METADATA: PromptMetadata = {
@@ -405,6 +455,505 @@ Output a side-by-side sprint vs. pipeline health summary table, then the recomme
     moduleId: 'sei',
     moduleTitle: 'Software Engineering Insights',
     moduleColor: '#3B82F6',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // ── FME: Flag Cleanup & Governance ──────────────────────────────────────────
+  {
+    id: 'ff-cleanup-001',
+    title: 'Weekly Flag Cleanup Assessment',
+    content: `Analyze all feature flags in {{project_name}} and identify candidates for cleanup.
+
+Flag criteria to surface:
+- Flags with zero traffic in the last 7 days
+- Flags at 100% rollout for more than 14 days with no pending rollback
+- Flags without any modification in the last 30+ days
+- Flags missing owner assignments or documentation
+- Flags approaching their planned expiration dates
+
+For each flag found, provide:
+- Flag name and current state
+- Last activity date and traffic volume
+- Risk level (low / medium / high) to archive
+- Recommended action (archive / review / retain)
+
+Generate a prioritized cleanup list sorted by risk level, starting with the safest to remove.`,
+    variables: [
+      { id: 'v1', name: 'project_name', label: 'Project / Environment', placeholder: 'e.g., payment-platform / production', type: 'text' },
+    ],
+    tags: ['feature-flags', 'cleanup', 'lifecycle', 'stale-flags', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-002',
+    title: 'Stale Flag Audit Report',
+    content: `Create a comprehensive audit of all feature flags for the past {{lookback_days}} days, covering:
+
+For each flag, show:
+- Last modification date and the user who made it
+- Current rollout percentage and targeting rules summary
+- Traffic volume trend over the lookback period
+- Code references and downstream service dependencies
+- Business impact classification: critical / medium / low
+
+Flag as cleanup candidates any flags that meet two or more of:
+- No traffic for {{lookback_days}} days
+- No code reference found
+- No owner assigned
+- Rollout at 0% or 100% with no modification
+
+Output as a structured table, then a separate section listing each cleanup candidate with justification.`,
+    variables: [
+      { id: 'v1', name: 'lookback_days', label: 'Lookback Period (days)', placeholder: 'e.g., 30', type: 'dropdown', options: ['14', '30', '60', '90'], defaultValue: '30' },
+    ],
+    tags: ['feature-flags', 'audit', 'stale-flags', 'lifecycle', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-003',
+    title: 'Pre-Cleanup Flag Validation',
+    content: `Before archiving feature flag {{flag_name}}, validate the following checklist and provide a go/no-go recommendation.
+
+**Code Safety**
+- Are all references to {{flag_name}} removed from the codebase?
+- Do any other flags use {{flag_name}} as a prerequisite or dependency?
+- Are there any active SDK evaluations in the last 7 days?
+
+**Traffic & Usage**
+- Confirm zero active traffic for a minimum of {{quiet_period}} days
+- Verify no scheduled campaigns or experiments reference this flag
+- Check that no A/B test results are still pending for this flag
+
+**Stakeholder Approval**
+- Flag owner sign-off obtained?
+- Product team approval confirmed?
+- Has the permanent feature state been documented?
+
+**Post-Archive Validation**
+- Is there a rollback plan if unexpected behavior is detected after archiving?
+
+Summarize each check as PASS / FAIL / WARNING and conclude with: GO (safe to archive) or NO-GO (action required) with specific blockers listed.`,
+    variables: [
+      { id: 'v1', name: 'flag_name', label: 'Flag Name', placeholder: 'e.g., enable-new-checkout-flow', type: 'text' },
+      { id: 'v2', name: 'quiet_period', label: 'Min Quiet Period (days)', placeholder: 'e.g., 14', type: 'dropdown', options: ['7', '14', '30'], defaultValue: '14' },
+    ],
+    tags: ['feature-flags', 'validation', 'cleanup', 'pre-archive', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-004',
+    title: 'Bulk Cleanup Phased Plan',
+    content: `Design a phased cleanup plan for {{flag_count}} identified stale feature flags in {{project_name}}.
+
+**Phase 1 — Low Risk (Week 1–2)**
+- Group flags by: zero traffic, 100% rollout, no code references
+- List flags safe to archive immediately with no stakeholder review needed
+- Provide archive commands / API calls for each
+
+**Phase 2 — Medium Risk (Week 3–4)**
+- Flags requiring owner notification before archiving
+- Create 30-day archive schedule with notification cadence: 30 days → 14 days → 7 days → archive
+- Identify code cleanup sprints required per service
+
+**Phase 3 — High Risk / Cross-Team (Week 5–8)**
+- Flags with cross-service dependencies or active experiments
+- Stakeholder consultation plan with named approvers
+- Coordinated code removal timeline across affected repositories
+
+**Rollback Procedures**
+For each phase, describe the rollback steps if unexpected behavior is detected post-cleanup.
+
+**Monitoring**
+Define the metrics to watch for {{monitoring_window}} days after each cleanup phase completes.`,
+    variables: [
+      { id: 'v1', name: 'flag_count', label: 'Number of Flags', placeholder: 'e.g., 24', type: 'text' },
+      { id: 'v2', name: 'project_name', label: 'Project Name', placeholder: 'e.g., payment-platform', type: 'text' },
+      { id: 'v3', name: 'monitoring_window', label: 'Post-Cleanup Monitoring (days)', placeholder: 'e.g., 14', type: 'dropdown', options: ['7', '14', '30'], defaultValue: '14' },
+    ],
+    tags: ['feature-flags', 'cleanup', 'phased-plan', 'bulk', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-005',
+    title: 'Governance Policy Enforcement Setup',
+    content: `Implement feature flag governance policies for {{project_name}} to prevent flag accumulation going forward.
+
+**Policy Definitions**
+1. Mandatory expiration: all new flags must have an expiry date, default {{default_expiry_days}} days from creation
+2. Owner requirement: no flag can be created without an assigned owner and team tag
+3. Naming convention enforcement: flags must follow the pattern {{naming_pattern}}
+4. Maximum flags per service: alert when any service exceeds {{max_flags_per_service}} active flags
+
+**Enforcement Mechanisms**
+- Configure Harness FME to block flag creation without required metadata
+- Set up automated Jira/ticket creation for flags approaching expiry
+- Add flag governance checks to the sprint planning template
+- Create a monthly compliance dashboard showing policy adherence by team
+
+**Automated Alerts**
+- 30 days before expiry: notify owner via {{notification_channel}}
+- 14 days before expiry: escalate to team lead
+- Day of expiry: auto-disable flag and notify owner + platform team
+
+**Compliance Tracking**
+Define the quarterly review cadence and the metrics that constitute a healthy flag inventory.`,
+    variables: [
+      { id: 'v1', name: 'project_name', label: 'Project Name', placeholder: 'e.g., payment-platform', type: 'text' },
+      { id: 'v2', name: 'default_expiry_days', label: 'Default Expiry (days)', placeholder: 'e.g., 90', type: 'dropdown', options: ['30', '60', '90', '180'], defaultValue: '90' },
+      { id: 'v3', name: 'naming_pattern', label: 'Naming Pattern', placeholder: 'e.g., [team]-[feature]-[env]', type: 'text' },
+      { id: 'v4', name: 'max_flags_per_service', label: 'Max Flags per Service', placeholder: 'e.g., 20', type: 'text', defaultValue: '20' },
+      { id: 'v5', name: 'notification_channel', label: 'Notification Channel', placeholder: 'Select channel', type: 'dropdown', options: ['Slack', 'Microsoft Teams', 'Email', 'PagerDuty'] },
+    ],
+    tags: ['feature-flags', 'governance', 'policy', 'compliance', 'fme'],
+    subUseCaseId: 'ff-governance',
+    subUseCaseTitle: 'Flag Governance',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-006',
+    title: 'Feature Flag Technical Debt Assessment',
+    content: `Evaluate the feature flag technical debt accumulated in {{service_name}} and provide a remediation roadmap.
+
+**Flag Inventory Analysis**
+- Total active flags vs. industry benchmark for a service of this size
+- Average flag age and distribution (< 30 days / 30–90 days / 90+ days)
+- Flags with nested conditions or prerequisite chains (complexity index)
+
+**Code Impact Assessment**
+- Lines of code containing flag conditionals
+- Number of test cases covering flag-on vs. flag-off paths
+- Estimated developer overhead per sprint caused by flag branching
+
+**Performance Impact**
+- Flag evaluation latency contribution (ms per request)
+- SDK initialization overhead at service startup
+- Number of flags evaluated per critical user path
+
+**Technical Debt Score**
+Assign a debt score (1–10) based on: flag count, complexity, age, and test coverage gaps.
+
+**Remediation Roadmap**
+Prioritize the top {{top_n}} flags to clean up first, with estimated effort (hours) and expected debt reduction per flag.`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., checkout-service', type: 'text' },
+      { id: 'v2', name: 'top_n', label: 'Top N Flags to Prioritize', placeholder: 'e.g., 5', type: 'dropdown', options: ['3', '5', '10'], defaultValue: '5' },
+    ],
+    tags: ['feature-flags', 'technical-debt', 'assessment', 'performance', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-007',
+    title: 'Automated Cleanup Workflow Setup',
+    content: `Set up an automated feature flag cleanup workflow in Harness for {{project_name}}.
+
+**Daily Automated Scans**
+Configure a Harness pipeline that runs daily and:
+1. Queries the FME API for flags matching cleanup criteria (zero traffic {{zero_traffic_days}}+ days, 100% rollout 14+ days, expired TTL)
+2. Cross-references the FME SDK scan results against the codebase for orphaned references
+3. Creates a daily cleanup report artifact
+
+**Notification Automation**
+- T-30 days before expiry: auto-message flag owner in {{notification_channel}} with cleanup checklist link
+- T-14 days: escalation message to team lead
+- T-7 days: final warning with one-click archive link
+- T-0 (expiry): auto-disable flag, post to {{notification_channel}}, create cleanup Jira ticket
+
+**Auto-Archive Safety Gates**
+Only auto-archive flags that pass ALL of:
+- Zero SDK evaluations for {{zero_traffic_days}} days
+- No code references detected by static analysis
+- Flag TTL explicitly expired
+- No open Jira blockers tagged to this flag
+
+**Override Mechanism**
+Describe how flag owners can snooze auto-archive with justification, and the maximum snooze period.`,
+    variables: [
+      { id: 'v1', name: 'project_name', label: 'Project Name', placeholder: 'e.g., payment-platform', type: 'text' },
+      { id: 'v2', name: 'zero_traffic_days', label: 'Zero-Traffic Threshold (days)', placeholder: 'e.g., 30', type: 'dropdown', options: ['14', '30', '60'], defaultValue: '30' },
+      { id: 'v3', name: 'notification_channel', label: 'Notification Channel', placeholder: 'Select channel', type: 'dropdown', options: ['Slack', 'Microsoft Teams', 'Email'] },
+    ],
+    tags: ['feature-flags', 'automation', 'cleanup', 'workflow', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-008',
+    title: 'Cross-Team Flag Cleanup Coordination',
+    content: `Coordinate feature flag cleanup across {{teams}} teams in {{project_name}}.
+
+**Shared Flag Inventory**
+- Identify all flags that affect more than one service or team
+- Map flag ownership across teams and highlight gaps
+- Flag any flags where the owning team no longer exists or has changed
+
+**Cleanup Schedule**
+Design a dependency-safe cleanup schedule:
+1. List flags with no cross-team dependencies (can be cleaned independently)
+2. List flags with upstream dependencies (must coordinate cleanup order)
+3. List flags with downstream consumers (require consumer team sign-off first)
+
+**Communication Protocol**
+- Cleanup notification template for cross-team flags
+- Approval workflow: who must approve before a shared flag is archived?
+- Escalation path if a consuming team is unresponsive for {{escalation_days}} days
+
+**Conflict Resolution**
+Provide a decision framework for disputed flag cleanups — when one team wants to archive and another wants to keep the flag.
+
+**Coordinated Code Cleanup**
+Generate a cross-team sprint planning template that aligns code removal with flag archiving across all {{teams}} teams.`,
+    variables: [
+      { id: 'v1', name: 'teams', label: 'Teams Involved', placeholder: 'e.g., Platform, Payments, Auth', type: 'text' },
+      { id: 'v2', name: 'project_name', label: 'Project Name', placeholder: 'e.g., core-platform', type: 'text' },
+      { id: 'v3', name: 'escalation_days', label: 'Escalation Timeout (days)', placeholder: 'e.g., 5', type: 'dropdown', options: ['3', '5', '7', '14'], defaultValue: '5' },
+    ],
+    tags: ['feature-flags', 'cross-team', 'coordination', 'governance', 'fme'],
+    subUseCaseId: 'ff-governance',
+    subUseCaseTitle: 'Flag Governance',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-009',
+    title: 'Flag Compliance & Audit Report',
+    content: `Generate a feature flag compliance audit report for {{environment}} against the following policy standards.
+
+**Compliance Checks**
+For each active flag, evaluate:
+1. Documentation: does the flag have a description, owner, and linked ticket?
+2. Naming: does the flag follow the team naming convention?
+3. Expiry: does the flag have a set expiration date within policy limits?
+4. Targeting complexity: does the flag have more than {{max_targeting_rules}} targeting rules? (complexity risk)
+5. Age: has the flag been active for more than {{max_age_days}} days without modification?
+6. Security: is this flag controlling a security-sensitive feature? Is it subject to enhanced review?
+
+**Compliance Score**
+Calculate a compliance score (%) per team and per service.
+
+**Violations Report**
+List each violation with:
+- Flag name and owning team
+- Policy violated
+- Severity: critical / warning / info
+- Remediation action and deadline
+
+**Remediation Plan**
+For all critical violations, generate a 2-week remediation sprint plan with specific tasks assigned to flag owners.`,
+    variables: [
+      { id: 'v1', name: 'environment', label: 'Environment', placeholder: 'e.g., production', type: 'dropdown', options: ['production', 'staging', 'development', 'all'], defaultValue: 'production' },
+      { id: 'v2', name: 'max_targeting_rules', label: 'Max Targeting Rules', placeholder: 'e.g., 5', type: 'text', defaultValue: '5' },
+      { id: 'v3', name: 'max_age_days', label: 'Max Flag Age (days)', placeholder: 'e.g., 90', type: 'dropdown', options: ['60', '90', '180', '365'], defaultValue: '90' },
+    ],
+    tags: ['feature-flags', 'compliance', 'audit', 'governance', 'policy', 'fme'],
+    subUseCaseId: 'ff-governance',
+    subUseCaseTitle: 'Flag Governance',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-010',
+    title: 'Post-Cleanup Production Validation',
+    content: `After archiving feature flag {{flag_name}}, validate that the cleanup has not introduced any production issues.
+
+**Immediate Checks (0–1 hour post-archive)**
+- Error rate delta: compare {{service_name}} error rate to baseline (last 7-day average)
+- Latency delta: check p50/p95/p99 response times for endpoints affected by {{flag_name}}
+- Null pointer / undefined reference errors: scan application logs for flag-name references still in code
+- SDK evaluation errors: confirm zero FME SDK errors related to missing flag
+
+**Stability Window (1–{{monitoring_hours}} hours post-archive)**
+- Monitor conversion rates for user flows previously gated by {{flag_name}}
+- Confirm no spike in support tickets or user-reported issues
+- Check downstream services for unexpected behavior changes
+
+**Test Suite Validation**
+- Confirm CI pipeline passes with flag removed from test fixtures
+- Verify no test is explicitly testing for {{flag_name}} variation behavior
+
+**Cleanup Success Report**
+Generate a concise post-archive report with: timestamp, flag details, pre/post metrics comparison, test results, and a final "clean" or "rollback required" verdict.`,
+    variables: [
+      { id: 'v1', name: 'flag_name', label: 'Archived Flag Name', placeholder: 'e.g., enable-new-checkout-flow', type: 'text' },
+      { id: 'v2', name: 'service_name', label: 'Affected Service', placeholder: 'e.g., checkout-service', type: 'text' },
+      { id: 'v3', name: 'monitoring_hours', label: 'Monitoring Window (hours)', placeholder: 'e.g., 24', type: 'dropdown', options: ['4', '12', '24', '48'], defaultValue: '24' },
+    ],
+    tags: ['feature-flags', 'post-cleanup', 'validation', 'monitoring', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-011',
+    title: 'Emergency Flag Cleanup',
+    content: `Execute an emergency feature flag cleanup to address a {{issue_type}} issue in {{service_name}}.
+
+**Immediate Triage (next 15 minutes)**
+1. Identify all feature flags currently active in {{service_name}} that could contribute to {{issue_type}}
+2. Rank flags by likelihood of contributing to the issue (based on recent changes and affected code paths)
+3. Recommend the single flag most likely to be the root cause — provide disable command
+
+**Rapid Disable Plan**
+For the top suspect flag:
+- Disable command / API call to execute immediately
+- Expected behavior change after disable
+- Estimated time to confirm if disable resolved the issue
+
+**Stakeholder Communication**
+Draft an incident communication message for {{notification_channel}} covering:
+- What is happening and which flag is being disabled
+- Expected customer impact during and after the change
+- Who is executing the change and when
+
+**Post-Emergency Actions**
+Once the immediate issue is resolved:
+- Document the timeline of events
+- Identify why this flag was not caught in pre-cleanup validation
+- Add a process improvement to the next retrospective
+- Schedule a full post-mortem if customer impact exceeded {{impact_threshold}} minutes`,
+    variables: [
+      { id: 'v1', name: 'issue_type', label: 'Issue Type', placeholder: 'Select issue type', type: 'dropdown', options: ['performance degradation', 'security vulnerability', 'data inconsistency', 'service outage', 'elevated error rate'] },
+      { id: 'v2', name: 'service_name', label: 'Affected Service', placeholder: 'e.g., checkout-service', type: 'text' },
+      { id: 'v3', name: 'notification_channel', label: 'Notification Channel', placeholder: 'Select channel', type: 'dropdown', options: ['Slack', 'Microsoft Teams', 'PagerDuty', 'Email'] },
+      { id: 'v4', name: 'impact_threshold', label: 'Postmortem Threshold (mins)', placeholder: 'e.g., 30', type: 'text', defaultValue: '30' },
+    ],
+    tags: ['feature-flags', 'emergency', 'incident', 'cleanup', 'fme'],
+    subUseCaseId: 'ff-cleanup',
+    subUseCaseTitle: 'Flag Cleanup & Retirement',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
+    copyCount: 0,
+    createdAt: '2025-01-15T10:00:00Z',
+    updatedAt: '2025-01-15T10:00:00Z',
+  },
+  {
+    id: 'ff-cleanup-012',
+    title: 'Quarterly Flag Health Review',
+    content: `Conduct a comprehensive {{quarter}} quarterly feature flag health review for {{project_name}}.
+
+**Inventory Snapshot**
+- Total flags: active vs. archived vs. pending cleanup at start and end of quarter
+- Net flag growth rate and trend vs. previous 3 quarters
+- Flags created vs. flags retired this quarter
+
+**Lifecycle Pattern Analysis**
+- Average flag lifespan this quarter vs. previous quarters
+- % of flags retired within policy TTL (target: >{{target_retirement_pct}}%)
+- Top 3 teams by flag accumulation and by flag retirement rate
+
+**Cleanup Effectiveness**
+- Flags cleaned up this quarter vs. planned target
+- Average time from "identified as stale" to "archived"
+- Cleanup actions blocked or delayed — root causes
+
+**Policy Compliance Review**
+- Current compliance score vs. last quarter
+- Policies that need to be updated or tightened
+- New flag patterns that need new governance rules
+
+**Next Quarter Cleanup Calendar**
+Generate a {{next_quarter}} cleanup calendar with:
+- Monthly cleanup sprint assignments per team
+- Flags already identified as candidates for Q+1 archiving
+- Governance policy updates planned
+- Tooling and automation improvements to implement`,
+    variables: [
+      { id: 'v1', name: 'quarter', label: 'Current Quarter', placeholder: 'e.g., Q2 2025', type: 'text' },
+      { id: 'v2', name: 'project_name', label: 'Project Name', placeholder: 'e.g., core-platform', type: 'text' },
+      { id: 'v3', name: 'target_retirement_pct', label: 'Target Retirement Rate (%)', placeholder: 'e.g., 80', type: 'text', defaultValue: '80' },
+      { id: 'v4', name: 'next_quarter', label: 'Next Quarter', placeholder: 'e.g., Q3 2025', type: 'text' },
+    ],
+    tags: ['feature-flags', 'quarterly-review', 'governance', 'lifecycle', 'planning', 'fme'],
+    subUseCaseId: 'ff-governance',
+    subUseCaseTitle: 'Flag Governance',
+    useCaseId: 'ff-lifecycle',
+    useCaseTitle: 'Flag Lifecycle',
+    moduleId: 'ff',
+    moduleTitle: 'Feature Management & Experimentation',
+    moduleColor: '#F59E0B',
     copyCount: 0,
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '2025-01-15T10:00:00Z',
