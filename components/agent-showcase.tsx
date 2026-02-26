@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Bot } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import {
   AgentType, AGENT_LABELS, AGENT_COLORS, AGENT_DESCRIPTIONS,
   AGENT_AVAILABILITY, AVAILABILITY_LABELS,
@@ -20,24 +20,27 @@ export function AgentShowcase({ agentCounts, selectedAgents, onToggle }: AgentSh
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div className="border-b border-border/60 bg-muted/20 px-4 md:px-6 py-3">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2.5">
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          <Bot className="h-3 w-3" />
+    <div className="border-b border-border/60 bg-background">
+      {/* ── Section header ── */}
+      <div className="flex items-center justify-between px-4 md:px-6 pt-3.5 pb-2.5">
+        <span className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
           AI Agents
         </span>
         <button
           onClick={() => setCollapsed(c => !c)}
-          className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+          className="group flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground/60 hover:bg-muted hover:text-foreground transition-all duration-150"
         >
-          {collapsed ? 'Show' : 'Hide'}
-          {collapsed ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
+          {collapsed ? 'Show agents' : 'Hide'}
+          {collapsed
+            ? <ChevronDown className="h-3 w-3 opacity-70 group-hover:opacity-100" />
+            : <ChevronUp className="h-3 w-3 opacity-70 group-hover:opacity-100" />
+          }
         </button>
       </div>
 
+      {/* ── Agent cards ── */}
       {!collapsed && (
-        <div className="flex gap-2.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex gap-3 overflow-x-auto px-4 md:px-6 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {AGENT_IDS.map(agentId => {
             const color = AGENT_COLORS[agentId]
             const isSelected = selectedAgents.includes(agentId)
@@ -50,52 +53,74 @@ export function AgentShowcase({ agentCounts, selectedAgents, onToggle }: AgentSh
                 key={agentId}
                 onClick={() => onToggle(agentId)}
                 className={cn(
-                  'shrink-0 w-[188px] text-left rounded-lg border p-3 transition-all duration-150',
+                  'group shrink-0 w-[196px] text-left rounded-xl border transition-all duration-200 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   isSelected
-                    ? 'border-[var(--harness-blue)] bg-[var(--harness-blue)]/5 shadow-sm ring-1 ring-[var(--harness-blue)]/20'
-                    : 'border-border/60 bg-card hover:border-border hover:bg-muted/40 hover:-translate-y-0.5 hover:shadow-sm',
-                  isComingSoon && !isSelected && 'opacity-60'
+                    ? 'shadow-md'
+                    : 'border-border/50 bg-card hover:border-border/80 hover:shadow-md hover:-translate-y-0.5',
+                  isComingSoon && !isSelected && 'opacity-55'
                 )}
+                style={isSelected ? {
+                  borderColor: `${color}50`,
+                  backgroundColor: `${color}0a`,
+                  boxShadow: `0 4px 16px ${color}18, 0 0 0 1px ${color}40`,
+                } : {}}
               >
-                {/* Agent name row */}
-                <div className="flex items-center justify-between gap-1 mb-1.5">
-                  <span className="flex items-center gap-1.5 min-w-0">
-                    <span
-                      className="h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className="text-xs font-semibold text-foreground truncate">
+                {/* Colored top accent bar */}
+                <div
+                  className="h-[3px] w-full transition-opacity duration-200"
+                  style={{
+                    backgroundColor: color,
+                    opacity: isSelected ? 1 : 0.35,
+                  }}
+                />
+
+                <div className="p-3.5">
+                  {/* Agent name + availability badge */}
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <span className={cn(
+                      'text-[13px] font-semibold leading-snug',
+                      isSelected ? 'text-foreground' : 'text-foreground/80 group-hover:text-foreground'
+                    )}
+                    style={isSelected ? { color } : {}}
+                    >
                       {AGENT_LABELS[agentId]}
                     </span>
-                  </span>
-                  {isComingSoon && (
-                    <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-muted text-muted-foreground shrink-0 leading-none">
-                      {AVAILABILITY_LABELS[availability]}
-                    </span>
-                  )}
-                </div>
+                    {isComingSoon && (
+                      <span
+                        className="shrink-0 mt-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap"
+                        style={{ backgroundColor: `${color}18`, color }}
+                      >
+                        {AVAILABILITY_LABELS[availability]}
+                      </span>
+                    )}
+                  </div>
 
-                {/* Description */}
-                <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
-                  {AGENT_DESCRIPTIONS[agentId]}
-                </p>
+                  {/* Description */}
+                  <p className="text-[10.5px] text-muted-foreground leading-relaxed line-clamp-2 mb-3">
+                    {AGENT_DESCRIPTIONS[agentId]}
+                  </p>
 
-                {/* Footer: prompt count + selected indicator */}
-                <div className="mt-2 flex items-center justify-between">
-                  <span
-                    className="text-[10px] font-medium"
-                    style={{ color: isSelected ? color : 'hsl(var(--muted-foreground))' }}
-                  >
-                    {count} prompt{count !== 1 ? 's' : ''}
-                  </span>
-                  {isSelected && (
+                  {/* Footer: prompt count + state */}
+                  <div className="flex items-center justify-between gap-2">
                     <span
-                      className="text-[9px] font-semibold"
-                      style={{ color }}
+                      className="text-[11px] font-semibold tabular-nums"
+                      style={{ color: isSelected ? color : 'hsl(var(--muted-foreground))' }}
                     >
-                      ✓ Filtering
+                      {count} prompt{count !== 1 ? 's' : ''}
                     </span>
-                  )}
+                    {isSelected ? (
+                      <span
+                        className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                        style={{ backgroundColor: `${color}20`, color }}
+                      >
+                        ✓ Active
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/0 group-hover:text-muted-foreground/50 transition-all duration-150">
+                        Filter
+                      </span>
+                    )}
+                  </div>
                 </div>
               </button>
             )
