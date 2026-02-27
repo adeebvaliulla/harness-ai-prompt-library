@@ -23,7 +23,7 @@ export function AgentShowcase({ agentCounts, selectedAgents, onToggle }: AgentSh
     <div className="border-b border-border/60 bg-background">
 
       {/* ── Section header ─────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 md:px-6 pt-5 pb-3">
+      <div className="flex items-center justify-between px-4 md:px-6 pt-5 pb-2">
         <h2 className="text-[13px] font-semibold tracking-tight text-foreground">
           AI Agents
         </h2>
@@ -41,7 +41,7 @@ export function AgentShowcase({ agentCounts, selectedAgents, onToggle }: AgentSh
 
       {/* ── Agent cards ────────────────────────────────────────────────── */}
       {!collapsed && (
-        <div className="flex gap-3 overflow-x-auto px-4 md:px-6 pb-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex gap-3 overflow-x-auto px-4 md:px-6 pt-2 pb-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {AGENT_IDS.map(agentId => {
             const color = AGENT_COLORS[agentId]
             const isSelected = selectedAgents.includes(agentId)
