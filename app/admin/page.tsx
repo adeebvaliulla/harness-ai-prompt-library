@@ -156,7 +156,7 @@ function PromptEditorDialog({
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{prompt ? 'Edit Prompt' : 'New Prompt'}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 min-w-0">
+        <ScrollArea className="flex-1 h-0 min-w-0">
           <div className="px-6 py-4 space-y-4">
             <div className="space-y-1.5">
               <Label>Title</Label>
