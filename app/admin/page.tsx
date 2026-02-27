@@ -13,7 +13,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
@@ -156,7 +155,7 @@ function PromptEditorDialog({
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{prompt ? 'Edit Prompt' : 'New Prompt'}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 h-0 min-w-0">
+        <div className="flex-1 overflow-y-auto min-w-0">
           <div className="px-6 py-4 space-y-4">
             <div className="space-y-1.5">
               <Label>Title</Label>
@@ -293,7 +292,7 @@ function PromptEditorDialog({
               <Input value={tagsInput} onChange={e => setTagsInput(e.target.value)} placeholder="e.g., pipeline, docker, kubernetes" />
             </div>
           </div>
-        </ScrollArea>
+        </div>
         <DialogFooter className="px-6 py-3 border-t">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button
