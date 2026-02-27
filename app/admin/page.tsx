@@ -152,11 +152,11 @@ function PromptEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-3xl w-full flex flex-col max-h-[90vh] p-0 gap-0">
+      <DialogContent className="max-w-3xl w-full flex flex-col max-h-[90vh] p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{prompt ? 'Edit Prompt' : 'New Prompt'}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-w-0">
           <div className="px-6 py-4 space-y-4">
             <div className="space-y-1.5">
               <Label>Title</Label>
@@ -274,7 +274,7 @@ function PromptEditorDialog({
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 placeholder="Write your prompt here. Use {{variable_name}} for customizable fields the user will fill in."
-                className="min-h-[200px] font-mono text-xs resize-y"
+                className="min-h-[200px] w-full font-mono text-xs resize-y"
               />
               {detectedVars.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">
