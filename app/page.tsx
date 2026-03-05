@@ -12,14 +12,16 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
   Prompt, AgentType, AGENT_LABELS, AGENT_COLORS, CustomerContext,
-  SdlcStage, PromptComplexity,
+  SdlcStage, PromptComplexity, SituationType,
   SDLC_STAGE_LABELS, SDLC_STAGE_COLORS,
   COMPLEXITY_LABELS, COMPLEXITY_COLORS,
+  SITUATION_LABELS, SITUATION_COLORS,
 } from '@/lib/types'
 import { getAllPrompts, getModules } from '@/lib/data'
 import { cn } from '@/lib/utils'
 import { ContextPanel, CONTEXT_VAR_MAP, loadContext } from '@/components/context-panel'
 import { AgentShowcase } from '@/components/agent-showcase'
+import { SituationSelector } from '@/components/situation-selector'
 
 const SDLC_STAGES: SdlcStage[] = ['plan', 'build', 'test', 'secure', 'release', 'monitor', 'cost', 'govern']
 const COMPLEXITIES: PromptComplexity[] = ['beginner', 'intermediate', 'advanced']
@@ -104,6 +106,7 @@ export default function HomePage() {
   const [selectedAgents, setSelectedAgents] = useState<AgentType[]>([])
   const [selectedComplexities, setSelectedComplexities] = useState<PromptComplexity[]>([])
   const [selectedStage, setSelectedStage] = useState<SdlcStage | null>(null)
+  const [selectedSituation, setSelectedSituation] = useState<SituationType | null>(null)
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(true)
@@ -138,8 +141,10 @@ export default function HomePage() {
     agents: AgentType[],
     complexities: PromptComplexity[],
     stage: SdlcStage | null,
+    situation: SituationType | null,
   ) {
     let result = prompts
+    if (situation) result = result.filter(p => p.situations?.includes(situation))
     if (mods.length > 0) result = result.filter(p => mods.includes(p.moduleId))
     if (agents.length > 0) result = result.filter(p => agents.includes(p.agentType))
     if (complexities.length > 0) result = result.filter(p => complexities.includes(p.complexity))
@@ -164,7 +169,7 @@ export default function HomePage() {
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
     if (q.trim().length > 2) {
       searchTimeout.current = setTimeout(() => {
-        const result = filterPrompts(allPrompts, q, selectedModules, selectedAgents, selectedComplexities, selectedStage)
+        const result = filterPrompts(allPrompts, q, selectedModules, selectedAgents, selectedComplexities, selectedStage, selectedSituation)
         fetch('/api/analytics', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -175,8 +180,8 @@ export default function HomePage() {
   }
 
   const filtered = useMemo(
-    () => filterPrompts(allPrompts, query, selectedModules, selectedAgents, selectedComplexities, selectedStage),
-    [allPrompts, query, selectedModules, selectedAgents, selectedComplexities, selectedStage] // eslint-disable-line react-hooks/exhaustive-deps
+    () => filterPrompts(allPrompts, query, selectedModules, selectedAgents, selectedComplexities, selectedStage, selectedSituation),
+    [allPrompts, query, selectedModules, selectedAgents, selectedComplexities, selectedStage, selectedSituation] // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   // Counts for sidebar items (based on full prompt list, not filtered)
@@ -204,6 +209,14 @@ export default function HomePage() {
     return c
   }, [allPrompts])
 
+  const situationCounts = useMemo(() => {
+    const c: Record<string, number> = {}
+    allPrompts.forEach(p => {
+      p.situations?.forEach(s => { c[s] = (c[s] ?? 0) + 1 })
+    })
+    return c
+  }, [allPrompts])
+
   const openModal = (prompt: Prompt) => {
     setSelectedPrompt(prompt)
     setModalOpen(true)
@@ -215,6 +228,7 @@ export default function HomePage() {
     setSelectedAgents([])
     setSelectedComplexities([])
     setSelectedStage(null)
+    setSelectedSituation(null)
   }
 
   const toggleModule = (id: string) =>
@@ -227,7 +241,7 @@ export default function HomePage() {
     setSelectedComplexities(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
 
   const activeFilterCount =
-    selectedModules.length + selectedAgents.length + selectedComplexities.length + (selectedStage ? 1 : 0)
+    selectedModules.length + selectedAgents.length + selectedComplexities.length + (selectedStage ? 1 : 0) + (selectedSituation ? 1 : 0)
   const hasActiveFilters = !!query || activeFilterCount > 0
 
   return (
@@ -411,6 +425,16 @@ export default function HomePage() {
                 <span className="text-[11px] text-muted-foreground shrink-0">
                   {filtered.length} result{filtered.length !== 1 ? 's' : ''}
                 </span>
+                {selectedSituation && (
+                  <Badge variant="secondary" className="gap-1 text-[10px] py-0.5 h-auto">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: SITUATION_COLORS[selectedSituation] }}
+                    />
+                    {SITUATION_LABELS[selectedSituation]}
+                    <button onClick={() => setSelectedSituation(null)}><X className="h-2.5 w-2.5" /></button>
+                  </Badge>
+                )}
                 {selectedStage && (
                   <Badge variant="secondary" className="gap-1 text-[10px] py-0.5 h-auto">
                     <span
@@ -496,6 +520,13 @@ export default function HomePage() {
               })}
             </div>
           </div>
+
+          {/* Situation Selector */}
+          <SituationSelector
+            situationCounts={situationCounts}
+            selectedSituation={selectedSituation}
+            onSelect={setSelectedSituation}
+          />
 
           {/* Agent Showcase */}
           <AgentShowcase

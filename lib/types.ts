@@ -26,6 +26,41 @@ export type PromptComplexity = 'beginner' | 'intermediate' | 'advanced'
 
 export type SdlcStage = 'plan' | 'build' | 'test' | 'secure' | 'release' | 'monitor' | 'cost' | 'govern'
 
+export type SituationType =
+  | 'build-failed'
+  | 'ready-to-deploy'
+  | 'pr-review'
+  | 'incident-firing'
+  | 'cost-spike'
+  | 'optimize'
+
+export const SITUATION_LABELS: Record<SituationType, string> = {
+  'build-failed': 'Build Failed',
+  'ready-to-deploy': 'Ready to Deploy',
+  'pr-review': 'PR Review',
+  'incident-firing': 'Incident Firing',
+  'cost-spike': 'Cost Spike',
+  'optimize': 'Optimize Pipeline',
+}
+
+export const SITUATION_DESCRIPTIONS: Record<SituationType, string> = {
+  'build-failed': 'Diagnose failures, fix flaky tests, resolve dependency conflicts',
+  'ready-to-deploy': 'Readiness checks, drift analysis, and risk scoring before you push',
+  'pr-review': 'Pipeline impact, security review, and track PR all the way to production',
+  'incident-firing': 'Correlate deployments, assess blast radius, generate postmortem',
+  'cost-spike': 'Root cause cost spikes and detect idle or orphaned resources',
+  'optimize': 'Speed up pipelines, improve cache hit rates, eliminate redundancy',
+}
+
+export const SITUATION_COLORS: Record<SituationType, string> = {
+  'build-failed': '#ef4444',
+  'ready-to-deploy': '#22c55e',
+  'pr-review': '#3b82f6',
+  'incident-firing': '#f97316',
+  'cost-spike': '#f59e0b',
+  'optimize': '#8b5cf6',
+}
+
 export type PersonaTag =
   | 'devops-engineer'
   | 'developer'
@@ -145,6 +180,7 @@ export interface Prompt {
   complexity: PromptComplexity
   sdlcStage: SdlcStage
   personas: PersonaTag[]
+  situations?: SituationType[]
   subUseCaseId: string
   subUseCaseTitle: string
   useCaseId: string
@@ -158,7 +194,7 @@ export interface Prompt {
 }
 
 // Raw prompt stored in data.ts — new metadata fields added via prompt-metadata.ts
-export type RawPrompt = Omit<Prompt, 'description' | 'agentType' | 'mode' | 'availability' | 'mcpRequirements' | 'complexity' | 'sdlcStage' | 'personas'>
+export type RawPrompt = Omit<Prompt, 'description' | 'agentType' | 'mode' | 'availability' | 'mcpRequirements' | 'complexity' | 'sdlcStage' | 'personas' | 'situations'>
 
 export interface SubUseCase {
   id: string

@@ -1,4 +1,4 @@
-import { AgentType, PromptMode, PromptAvailability, PromptComplexity, SdlcStage, PersonaTag, RawPrompt } from './types'
+import { AgentType, PromptMode, PromptAvailability, PromptComplexity, SdlcStage, PersonaTag, SituationType, RawPrompt } from './types'
 
 export interface PromptMetadata {
   description: string
@@ -9,6 +9,7 @@ export interface PromptMetadata {
   complexity: PromptComplexity
   sdlcStage: SdlcStage
   personas: PersonaTag[]
+  situations?: SituationType[]
 }
 
 export const PROMPT_METADATA: Record<string, PromptMetadata> = {
@@ -408,6 +409,114 @@ export const PROMPT_METADATA: Record<string, PromptMetadata> = {
     description: 'Conducts a quarterly review of flag lifecycle patterns, team compliance, and cleanup policy effectiveness, and generates a cleanup calendar for the next quarter.',
     agentType: 'release', mode: 'architect', availability: 'ga',
     complexity: 'advanced', sdlcStage: 'govern', personas: ['team-lead', 'platform-engineer'],
+  },
+
+  // ── Situational: Build Failed ────────────────────────────────────────────────
+  'ops-bf-001': {
+    description: 'Diagnoses a CI build failure from logs and error output, identifies root cause, provides an exact fix, and recommends a prevention strategy.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'build', personas: ['developer', 'devops-engineer'],
+    situations: ['build-failed'],
+  },
+  'ops-bf-002': {
+    description: 'Analyzes intermittent test failures across multiple pipeline runs to identify the flakiness type, root cause, and a concrete fix.',
+    agentType: 'qa', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'test', personas: ['developer', 'devops-engineer'],
+    situations: ['build-failed'],
+  },
+  'ops-bf-003': {
+    description: 'Resolves package manager dependency conflicts blocking your build by identifying the conflicting packages and providing the exact resolution steps.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'build', personas: ['developer', 'devops-engineer'],
+    situations: ['build-failed'],
+  },
+
+  // ── Situational: Ready to Deploy ─────────────────────────────────────────────
+  'ops-rd-001': {
+    description: 'Runs a pre-deployment readiness check across incidents, error budgets, pipeline health, change freezes, and rollback readiness to give a clear go/no-go.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'release', personas: ['devops-engineer', 'developer', 'sre'],
+    situations: ['ready-to-deploy'],
+  },
+  'ops-rd-002': {
+    description: 'Compares staging and production environments for a service — versions, config, infrastructure, feature flags, and pending migrations — and flags drift.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'release', personas: ['devops-engineer', 'sre'],
+    situations: ['ready-to-deploy'],
+  },
+  'ops-rd-003': {
+    description: 'Analyzes live canary metrics vs. baseline to give a data-driven proceed / pause / rollback recommendation with the next steps to take.',
+    agentType: 'reliability', mode: 'standard', availability: 'ga',
+    complexity: 'advanced', sdlcStage: 'release', personas: ['devops-engineer', 'sre'],
+    situations: ['ready-to-deploy'],
+  },
+
+  // ── Situational: PR Review ────────────────────────────────────────────────────
+  'ops-pr-001': {
+    description: 'Analyzes a PR to identify which pipelines will trigger, downstream services affected, pipeline config changes needed, and the recommended deployment strategy.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'build', personas: ['developer', 'devops-engineer'],
+    situations: ['pr-review'],
+  },
+  'ops-pr-002': {
+    description: 'Performs a security-focused review of a PR for exposed secrets, new CVE-affected dependencies, OWASP Top 10 risks, and recommends STO scan gates.',
+    agentType: 'appsec', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'secure', personas: ['security-engineer', 'developer'],
+    situations: ['pr-review'],
+  },
+  'ops-pr-003': {
+    description: 'Maps a PR\'s full journey from merge through CI, CD, and production verification — defining the pipeline chain, tracking tags, verification criteria, and rollback trigger.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'release', personas: ['developer', 'devops-engineer'],
+    situations: ['pr-review'],
+  },
+
+  // ── Situational: Incident Firing ─────────────────────────────────────────────
+  'ops-if-001': {
+    description: 'Correlates a live incident with recent Harness deployments to identify whether a deployment caused it and provides immediate mitigation or rollback steps.',
+    agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'intermediate', sdlcStage: 'monitor', personas: ['sre', 'devops-engineer'],
+    situations: ['incident-firing'],
+  },
+  'ops-if-002': {
+    description: 'Maps the blast radius of a service outage — upstream callers, downstream dependencies, user-facing impact, SLO burn rate, and priority order for recovery.',
+    agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'advanced', sdlcStage: 'monitor', personas: ['sre', 'platform-engineer'],
+    situations: ['incident-firing'],
+  },
+  'ops-if-003': {
+    description: 'Generates a complete incident postmortem with 5-why RCA, impact summary, detection & response analysis, action items, and prevention recommendations.',
+    agentType: 'sre', mode: 'standard', availability: 'q3',
+    complexity: 'beginner', sdlcStage: 'monitor', personas: ['sre', 'team-lead'],
+    situations: ['incident-firing'],
+  },
+
+  // ── Situational: Cost Spike ───────────────────────────────────────────────────
+  'ops-cs-001': {
+    description: 'Investigates a cloud cost spike by correlating with Harness pipeline activity, identifying top cost drivers, spotting orphaned resources, and recommending immediate reductions.',
+    agentType: 'finops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'cost', personas: ['finops-analyst', 'devops-engineer'],
+    situations: ['cost-spike'],
+  },
+  'ops-cs-002': {
+    description: 'Audits cloud resources for idle compute, orphaned storage, zombie deployments, and stale flag environments — with estimated savings and a safe termination plan.',
+    agentType: 'finops', mode: 'standard', availability: 'ga',
+    complexity: 'beginner', sdlcStage: 'cost', personas: ['finops-analyst', 'platform-engineer'],
+    situations: ['cost-spike'],
+  },
+
+  // ── Situational: Optimize Pipeline ───────────────────────────────────────────
+  'ops-op-001': {
+    description: 'Identifies pipeline speed bottlenecks and delivers a prioritized optimization plan covering parallelization, caching, test intelligence, and infrastructure right-sizing.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'build', personas: ['devops-engineer', 'developer'],
+    situations: ['optimize'],
+  },
+  'ops-op-002': {
+    description: 'Diagnoses low cache hit rates for any build tool and provides an optimized key strategy, missing cache paths, Docker layer ordering, and ready-to-use Harness YAML.',
+    agentType: 'devops', mode: 'standard', availability: 'ga',
+    complexity: 'intermediate', sdlcStage: 'build', personas: ['devops-engineer', 'developer'],
+    situations: ['optimize'],
   },
 }
 

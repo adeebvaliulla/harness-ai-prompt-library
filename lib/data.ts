@@ -446,6 +446,80 @@ export const MODULES: Module[] = [
       },
     ],
   },
+  {
+    id: 'ai-ops',
+    name: 'Situational AI Workflows',
+    shortName: 'AI Workflows',
+    description: 'Operational prompts for the situations you face every day — failures, deployments, PRs, incidents, and optimization.',
+    color: '#10b981',
+    icon: 'Zap',
+    useCases: [
+      {
+        id: 'ai-ops-build',
+        title: 'Build Intelligence',
+        description: 'Diagnose failures, flaky tests, and dependency conflicts',
+        moduleId: 'ai-ops',
+        subUseCases: [
+          { id: 'ai-ops-build-failure', title: 'Build Failure Diagnosis', useCaseId: 'ai-ops-build' },
+          { id: 'ai-ops-flaky-test', title: 'Flaky Test Analysis', useCaseId: 'ai-ops-build' },
+          { id: 'ai-ops-dependency', title: 'Dependency Conflict Resolution', useCaseId: 'ai-ops-build' },
+        ],
+      },
+      {
+        id: 'ai-ops-deploy',
+        title: 'Deployment Safety',
+        description: 'Readiness checks, drift analysis, and canary decisions',
+        moduleId: 'ai-ops',
+        subUseCases: [
+          { id: 'ai-ops-readiness', title: 'Deployment Readiness Check', useCaseId: 'ai-ops-deploy' },
+          { id: 'ai-ops-drift', title: 'Environment Drift Analysis', useCaseId: 'ai-ops-deploy' },
+          { id: 'ai-ops-canary', title: 'Canary Rollout Decision', useCaseId: 'ai-ops-deploy' },
+        ],
+      },
+      {
+        id: 'ai-ops-pr',
+        title: 'Developer Workflows',
+        description: 'PR impact analysis, security review, and production tracking',
+        moduleId: 'ai-ops',
+        subUseCases: [
+          { id: 'ai-ops-pr-impact', title: 'PR Pipeline Impact Analysis', useCaseId: 'ai-ops-pr' },
+          { id: 'ai-ops-pr-security', title: 'Security PR Review', useCaseId: 'ai-ops-pr' },
+          { id: 'ai-ops-pr-tracking', title: 'PR to Production Tracker', useCaseId: 'ai-ops-pr' },
+        ],
+      },
+      {
+        id: 'ai-ops-incident',
+        title: 'Incident Response',
+        description: 'Correlate deployments, blast radius, and postmortems',
+        moduleId: 'ai-ops',
+        subUseCases: [
+          { id: 'ai-ops-incident-deploy', title: 'Deployment Correlation', useCaseId: 'ai-ops-incident' },
+          { id: 'ai-ops-blast-radius', title: 'Blast Radius Analysis', useCaseId: 'ai-ops-incident' },
+          { id: 'ai-ops-postmortem', title: 'Postmortem Generator', useCaseId: 'ai-ops-incident' },
+        ],
+      },
+      {
+        id: 'ai-ops-cost',
+        title: 'Cost Investigation',
+        description: 'Root cause cost spikes and find idle resources',
+        moduleId: 'ai-ops',
+        subUseCases: [
+          { id: 'ai-ops-cost-spike', title: 'Cost Spike Root Cause', useCaseId: 'ai-ops-cost' },
+          { id: 'ai-ops-idle', title: 'Idle Resource Detector', useCaseId: 'ai-ops-cost' },
+        ],
+      },
+      {
+        id: 'ai-ops-optimize',
+        title: 'Optimization',
+        description: 'Speed up pipelines and improve cache hit rates',
+        moduleId: 'ai-ops',
+        subUseCases: [
+          { id: 'ai-ops-speed', title: 'Pipeline Speed Optimization', useCaseId: 'ai-ops-optimize' },
+          { id: 'ai-ops-cache', title: 'Cache Hit Rate Advisor', useCaseId: 'ai-ops-optimize' },
+        ],
+      },
+    ],
+  },
 ]
 
 export const SAMPLE_PROMPTS: RawPrompt[] = [
@@ -3607,6 +3681,629 @@ Justification: [based on delta and compliance findings]`,
     copyCount: 0,
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '2025-01-15T10:00:00Z',
+  },
+
+  // ── Situational: Build Failed ────────────────────────────────────────────────
+  {
+    id: 'ops-bf-001',
+    title: 'Build Failure Diagnosis',
+    content: `I have a build failure in my Harness CI pipeline that I need you to diagnose and fix.
+
+**Service:** {{service_name}}
+**Pipeline:** {{pipeline_name}}
+**Stage that failed:** {{failed_stage}}
+**Build tool:** {{build_tool}}
+
+**Error output from the failed step:**
+{{error_logs}}
+
+Please:
+1. Identify the root cause of this failure
+2. Explain what went wrong and why
+3. Provide the exact fix I need to apply (config change, code fix, or environment change)
+4. Suggest a preventive measure so this doesn't recur
+5. If this is a common failure pattern, tell me what to monitor going forward to catch it earlier`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'pipeline_name', label: 'Pipeline Name', placeholder: 'e.g., payment-service-ci', type: 'text' },
+      { id: 'v3', name: 'failed_stage', label: 'Failed Stage', placeholder: 'e.g., Build, Test, Docker Push', type: 'text' },
+      { id: 'v4', name: 'build_tool', label: 'Build Tool', placeholder: 'Select build tool', type: 'dropdown', options: ['Maven', 'Gradle', 'npm', 'yarn', 'pip', 'Go modules', 'Cargo', 'Docker'] },
+      { id: 'v5', name: 'error_logs', label: 'Error Logs', placeholder: 'Paste the error output from the failed step here', type: 'textarea' },
+    ],
+    tags: ['build', 'failure', 'diagnosis', 'debug', 'ci'],
+    subUseCaseId: 'ai-ops-build-failure',
+    subUseCaseTitle: 'Build Failure Diagnosis',
+    useCaseId: 'ai-ops-build',
+    useCaseTitle: 'Build Intelligence',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-bf-002',
+    title: 'Flaky Test Root Cause Analysis',
+    content: `I have a flaky test in my CI pipeline that passes and fails intermittently. Help me diagnose and fix it.
+
+**Service:** {{service_name}}
+**Test name / class:** {{test_name}}
+**Test framework:** {{test_framework}}
+**Failure rate:** {{failure_rate}} (e.g., "fails 3 out of 10 runs")
+**Failure pattern (if any):** {{failure_pattern}} (e.g., "always fails when parallel tests run", "fails on Monday mornings")
+
+**Sample failure output:**
+{{failure_output}}
+
+Please:
+1. Diagnose what's causing the intermittent failures
+2. Categorize the flakiness type (timing issue, shared state, resource contention, network dependency, test order dependency, etc.)
+3. Provide a concrete fix for the test
+4. Recommend Harness Test Intelligence settings to quarantine this test until it's fixed
+5. Suggest monitoring to detect other flaky tests in this codebase proactively`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'test_name', label: 'Test Name / Class', placeholder: 'e.g., PaymentServiceTest.testRefundAsync', type: 'text' },
+      { id: 'v3', name: 'test_framework', label: 'Test Framework', placeholder: 'Select framework', type: 'dropdown', options: ['JUnit', 'TestNG', 'pytest', 'Jest', 'Mocha', 'Go test', 'RSpec', 'xUnit'] },
+      { id: 'v4', name: 'failure_rate', label: 'Failure Rate', placeholder: 'e.g., fails 3 out of 10 runs', type: 'text' },
+      { id: 'v5', name: 'failure_pattern', label: 'Failure Pattern', placeholder: 'e.g., always fails when parallel tests run', type: 'text' },
+      { id: 'v6', name: 'failure_output', label: 'Sample Failure Output', placeholder: 'Paste a failure stack trace or error message here', type: 'textarea' },
+    ],
+    tags: ['flaky-test', 'test-intelligence', 'ci', 'debug', 'qa'],
+    subUseCaseId: 'ai-ops-flaky-test',
+    subUseCaseTitle: 'Flaky Test Analysis',
+    useCaseId: 'ai-ops-build',
+    useCaseTitle: 'Build Intelligence',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-bf-003',
+    title: 'Dependency Conflict Resolution',
+    content: `My CI pipeline is failing due to a dependency conflict. Help me resolve it.
+
+**Service:** {{service_name}}
+**Package manager:** {{package_manager}}
+**Conflicting packages:** {{conflicting_packages}}
+
+**Full dependency error:**
+{{dependency_error}}
+
+Please:
+1. Explain exactly what's conflicting and why
+2. Provide the specific resolution — version pin, exclusion rule, or dependency restructuring
+3. Show me the exact change to make in my {{package_manager}} config file
+4. Check if this conflict affects any transitive dependencies I should also update
+5. Recommend a Harness pipeline policy to prevent future breaking dependency updates from reaching production`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., auth-service', type: 'text' },
+      { id: 'v2', name: 'package_manager', label: 'Package Manager', placeholder: 'Select package manager', type: 'dropdown', options: ['npm', 'yarn', 'pnpm', 'Maven', 'Gradle', 'pip', 'Poetry', 'Go modules', 'Cargo'] },
+      { id: 'v3', name: 'conflicting_packages', label: 'Conflicting Packages', placeholder: 'e.g., lodash@4.17.15 vs lodash@3.10.1', type: 'text' },
+      { id: 'v4', name: 'dependency_error', label: 'Dependency Error Output', placeholder: 'Paste the full dependency conflict error here', type: 'textarea' },
+    ],
+    tags: ['dependencies', 'build', 'conflict', 'ci', 'debug'],
+    subUseCaseId: 'ai-ops-dependency',
+    subUseCaseTitle: 'Dependency Conflict Resolution',
+    useCaseId: 'ai-ops-build',
+    useCaseTitle: 'Build Intelligence',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+
+  // ── Situational: Ready to Deploy ─────────────────────────────────────────────
+  {
+    id: 'ops-rd-001',
+    title: 'Deployment Readiness Check',
+    content: `Before I deploy {{service_name}} to {{environment}}, give me a comprehensive readiness check and a clear go/no-go recommendation.
+
+**Service:** {{service_name}}
+**Target environment:** {{environment}}
+**Deployment type:** {{deployment_type}}
+**Change summary:** {{change_summary}}
+
+Please evaluate and check:
+1. **Pipeline health** — Any recent failures on this service's pipelines in the last 24 hours?
+2. **Open incidents** — Any active incidents affecting {{service_name}} or its dependencies?
+3. **Error budget** — What is the current SLO error budget status? Is it safe to deploy?
+4. **Change freeze** — Any change freeze windows active for {{environment}} right now or in the next hour?
+5. **Downstream dependencies** — Which services depend on {{service_name}} that could be affected?
+6. **Rollback readiness** — Is there a verified rollback plan and a previous stable artifact available?
+
+Give me a clear **GO / NO-GO / PROCEED WITH CAUTION** recommendation with your reasoning and any blocking issues to resolve first.`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'environment', label: 'Target Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Production', 'Staging', 'Pre-production', 'Canary'] },
+      { id: 'v3', name: 'deployment_type', label: 'Deployment Type', placeholder: 'Select deployment type', type: 'dropdown', options: ['Canary', 'Blue-Green', 'Rolling', 'Recreate'] },
+      { id: 'v4', name: 'change_summary', label: 'Change Summary', placeholder: 'Brief description of what this deployment changes', type: 'textarea' },
+    ],
+    tags: ['deployment', 'readiness', 'go-no-go', 'slo', 'release'],
+    subUseCaseId: 'ai-ops-readiness',
+    subUseCaseTitle: 'Deployment Readiness Check',
+    useCaseId: 'ai-ops-deploy',
+    useCaseTitle: 'Deployment Safety',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-rd-002',
+    title: 'Environment Drift Analysis',
+    content: `Before deploying {{service_name}}, identify all differences between {{source_environment}} and {{target_environment}} that could cause issues in production.
+
+**Service:** {{service_name}}
+**Source environment:** {{source_environment}}
+**Target environment:** {{target_environment}}
+
+Please compare and report on:
+1. **Service versions** — Is {{source_environment}} running a different image tag than {{target_environment}} for {{service_name}} or its dependencies?
+2. **Configuration drift** — Are there environment variables, secret references, or config maps that differ?
+3. **Infrastructure drift** — Are resource limits, replica counts, or Kubernetes configurations different?
+4. **Feature flags** — Which feature flags are enabled in {{source_environment}} but not {{target_environment}} (or vice versa)?
+5. **Pending migrations** — Are there database migrations or schema changes that must run before this deployment?
+
+Summarize drift findings in a table and flag any drift likely to cause production issues. Rate each finding: **Critical / Warning / Informational**.`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'source_environment', label: 'Source Environment', placeholder: 'e.g., Staging', type: 'text', defaultValue: 'Staging' },
+      { id: 'v3', name: 'target_environment', label: 'Target Environment', placeholder: 'e.g., Production', type: 'text', defaultValue: 'Production' },
+    ],
+    tags: ['drift', 'environment', 'deployment', 'config', 'release'],
+    subUseCaseId: 'ai-ops-drift',
+    subUseCaseTitle: 'Environment Drift Analysis',
+    useCaseId: 'ai-ops-deploy',
+    useCaseTitle: 'Deployment Safety',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-rd-003',
+    title: 'Canary Rollout Decision Advisor',
+    content: `My canary deployment for {{service_name}} has been running for {{canary_duration}} at {{canary_percentage}}% traffic. I need a data-driven decision on whether to proceed, pause, or rollback.
+
+**Service:** {{service_name}}
+**Canary traffic:** {{canary_percentage}}% | Duration: {{canary_duration}}
+**Canary version:** {{canary_version}} | Baseline: {{baseline_version}}
+
+**Current metrics:**
+- Error rate — Canary: {{canary_error_rate}}% | Baseline: {{baseline_error_rate}}%
+- P99 latency — Canary: {{canary_p99}}ms | Baseline: {{baseline_p99}}ms
+- Throughput change: {{throughput_change}}%
+
+**SLO thresholds:** Error rate < {{max_error_rate}}%, P99 < {{max_latency}}ms
+
+Please:
+1. Analyze whether these metrics indicate a healthy or degraded canary
+2. Assess statistical significance — is the difference meaningful or within noise?
+3. Give a clear recommendation: **PROCEED** to next traffic increment / **PAUSE** and investigate / **ROLLBACK** immediately
+4. If proceeding, suggest the next traffic percentage and monitoring duration
+5. If rolling back, provide the exact Harness rollback steps`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., checkout-service', type: 'text' },
+      { id: 'v2', name: 'canary_duration', label: 'Canary Duration', placeholder: 'e.g., 30 minutes', type: 'text' },
+      { id: 'v3', name: 'canary_percentage', label: 'Canary Traffic %', placeholder: 'e.g., 20', type: 'text' },
+      { id: 'v4', name: 'canary_version', label: 'Canary Version', placeholder: 'e.g., v2.4.1', type: 'text' },
+      { id: 'v5', name: 'baseline_version', label: 'Baseline Version', placeholder: 'e.g., v2.4.0', type: 'text' },
+      { id: 'v6', name: 'canary_error_rate', label: 'Canary Error Rate (%)', placeholder: 'e.g., 0.8', type: 'text' },
+      { id: 'v7', name: 'baseline_error_rate', label: 'Baseline Error Rate (%)', placeholder: 'e.g., 0.2', type: 'text' },
+      { id: 'v8', name: 'canary_p99', label: 'Canary P99 Latency (ms)', placeholder: 'e.g., 420', type: 'text' },
+      { id: 'v9', name: 'baseline_p99', label: 'Baseline P99 Latency (ms)', placeholder: 'e.g., 310', type: 'text' },
+      { id: 'v10', name: 'throughput_change', label: 'Throughput Change (%)', placeholder: 'e.g., -5 or +12', type: 'text' },
+      { id: 'v11', name: 'max_error_rate', label: 'Max Allowed Error Rate (%)', placeholder: 'e.g., 1.0', type: 'text', defaultValue: '1.0' },
+      { id: 'v12', name: 'max_latency', label: 'Max Allowed P99 (ms)', placeholder: 'e.g., 500', type: 'text', defaultValue: '500' },
+    ],
+    tags: ['canary', 'rollout', 'deployment', 'slo', 'metrics', 'rollback'],
+    subUseCaseId: 'ai-ops-canary',
+    subUseCaseTitle: 'Canary Rollout Decision',
+    useCaseId: 'ai-ops-deploy',
+    useCaseTitle: 'Deployment Safety',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+
+  // ── Situational: PR Review ────────────────────────────────────────────────────
+  {
+    id: 'ops-pr-001',
+    title: 'PR Pipeline Impact Analysis',
+    content: `I have a PR for {{service_name}} and need to understand its full pipeline and deployment impact before merging.
+
+**Service:** {{service_name}}
+**Repository:** {{repo_name}}
+**PR description:** {{pr_description}}
+**Changed components:** {{changed_components}}
+
+Please analyze and tell me:
+1. **Pipelines that will trigger** — Which CI/CD pipelines are affected by changes in {{changed_components}}?
+2. **Downstream service impact** — Which services depend on {{service_name}} and might be affected?
+3. **Pipeline config changes needed** — Does this PR require any pipeline updates (new env vars, updated build steps, secrets)?
+4. **Test coverage gaps** — Are there test stages that should be added or updated for these changes?
+5. **Recommended deployment strategy** — Given the scope of changes, should I use canary, blue-green, or rolling deployment?
+6. **Risk level** — Rate this change Low / Medium / High risk and explain why`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'repo_name', label: 'Repository Name', placeholder: 'e.g., my-org/payment-service', type: 'text' },
+      { id: 'v3', name: 'pr_description', label: 'PR Title / Description', placeholder: 'Brief description of what this PR changes', type: 'textarea' },
+      { id: 'v4', name: 'changed_components', label: 'Changed Components / Files', placeholder: 'e.g., payment processor, refund API, database migrations', type: 'textarea' },
+    ],
+    tags: ['pr', 'pipeline-impact', 'deployment', 'code-review', 'ci'],
+    subUseCaseId: 'ai-ops-pr-impact',
+    subUseCaseTitle: 'PR Pipeline Impact Analysis',
+    useCaseId: 'ai-ops-pr',
+    useCaseTitle: 'Developer Workflows',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-pr-002',
+    title: 'Security-Focused PR Review',
+    content: `Before merging a PR for {{service_name}}, I need a security-focused review.
+
+**Service:** {{service_name}}
+**Repository:** {{repo_name}}
+**PR description:** {{pr_description}}
+**Changed components:** {{changed_components}}
+
+Please review this PR for:
+1. **Exposed secrets or credentials** — Hardcoded API keys, tokens, passwords, or sensitive values?
+2. **Dependency vulnerabilities** — New dependencies with known CVEs (check against NIST NVD and GitHub Advisories)?
+3. **OWASP Top 10 risks** — Injection, XSS, CSRF, insecure deserialization, broken authentication, or authorization issues?
+4. **Insecure configurations** — Overly permissive IAM roles, disabled TLS, weak cipher suites, or missing security headers?
+5. **STO gate recommendations** — Which Harness STO scans (SAST, SCA, DAST, container scan) should be required for this type of change?
+
+For each finding, provide: **Severity** (Critical/High/Medium/Low) | **Description** | **Affected location** | **Remediation steps**`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., auth-service', type: 'text' },
+      { id: 'v2', name: 'repo_name', label: 'Repository Name', placeholder: 'e.g., my-org/auth-service', type: 'text' },
+      { id: 'v3', name: 'pr_description', label: 'PR Title / Description', placeholder: 'What this PR changes', type: 'textarea' },
+      { id: 'v4', name: 'changed_components', label: 'Changed Components', placeholder: 'e.g., OAuth handler, token validation, user session logic', type: 'textarea' },
+    ],
+    tags: ['security', 'pr-review', 'sast', 'owasp', 'sto', 'cve'],
+    subUseCaseId: 'ai-ops-pr-security',
+    subUseCaseTitle: 'Security PR Review',
+    useCaseId: 'ai-ops-pr',
+    useCaseTitle: 'Developer Workflows',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-pr-003',
+    title: 'PR to Production Tracker',
+    content: `Track the journey of a specific PR for {{service_name}} from merge all the way through to production deployment and verification.
+
+**Service:** {{service_name}}
+**PR title:** {{pr_title}}
+**Target environment:** {{environment}}
+**Expected deployment window:** {{deployment_window}}
+
+Please help me:
+1. **Map the pipeline chain** — What CI build, CD deployment, and verification stages will this PR go through?
+2. **Define tracking tags** — What Harness pipeline filters or tags should I apply to track this specific change through each stage?
+3. **Set verification criteria** — What metrics, health checks, and user-facing behaviors should I verify once deployed to {{environment}}?
+4. **Create a rollback trigger** — Define the exact condition and rollback steps if something looks wrong post-deploy
+5. **Draft a deployment notification** — Write a concise Slack message to send stakeholders when deployment succeeds, covering what changed and what was validated`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., checkout-service', type: 'text' },
+      { id: 'v2', name: 'pr_title', label: 'PR Title', placeholder: 'e.g., feat: add Apple Pay support to checkout', type: 'text' },
+      { id: 'v3', name: 'environment', label: 'Target Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Production', 'Staging', 'Pre-production'] },
+      { id: 'v4', name: 'deployment_window', label: 'Deployment Window', placeholder: 'e.g., Wednesday 2–4pm UTC', type: 'text' },
+    ],
+    tags: ['pr-tracking', 'deployment', 'release', 'verification', 'rollback'],
+    subUseCaseId: 'ai-ops-pr-tracking',
+    subUseCaseTitle: 'PR to Production Tracker',
+    useCaseId: 'ai-ops-pr',
+    useCaseTitle: 'Developer Workflows',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+
+  // ── Situational: Incident Firing ──────────────────────────────────────────────
+  {
+    id: 'ops-if-001',
+    title: 'Deployment-to-Incident Correlation',
+    content: `An incident just fired for {{service_name}} and I need to quickly determine whether a recent deployment caused it.
+
+**Affected service:** {{service_name}}
+**Alert / incident:** {{alert_name}}
+**Incident start time:** {{incident_start_time}}
+**Environment:** {{environment}}
+
+Please help me right now:
+1. **Recent deployments** — What deployed to {{service_name}} or its dependencies in the 2 hours before {{incident_start_time}}?
+2. **Correlation analysis** — Does the incident timing correlate with any deployment? Show a timeline.
+3. **What changed** — What specifically changed in the most recent deployment (config, image tag, feature flags)?
+4. **Immediate diagnostic commands** — Give me kubectl / Harness CLI commands to check service health and logs right now
+5. **Rollback decision** — Should I rollback the last deployment? If yes, give me the exact Harness rollback steps
+6. **Other mitigations** — Beyond rollback, what quick actions should I consider (scale up, disable feature flag, circuit breaker)?`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Affected Service', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'alert_name', label: 'Alert / Incident Name', placeholder: 'e.g., High error rate on /checkout, PagerDuty INC-4821', type: 'text' },
+      { id: 'v3', name: 'incident_start_time', label: 'Incident Start Time', placeholder: 'e.g., 2026-03-05 14:32 UTC', type: 'text' },
+      { id: 'v4', name: 'environment', label: 'Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Production', 'Staging', 'Pre-production'] },
+    ],
+    tags: ['incident', 'deployment-correlation', 'rollback', 'sre', 'monitor'],
+    subUseCaseId: 'ai-ops-incident-deploy',
+    subUseCaseTitle: 'Deployment Correlation',
+    useCaseId: 'ai-ops-incident',
+    useCaseTitle: 'Incident Response',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-if-002',
+    title: 'Blast Radius & Service Impact Analysis',
+    content: `{{affected_service}} is experiencing a {{failure_type}} and I need to rapidly assess the full blast radius.
+
+**Failing service:** {{affected_service}}
+**Failure type:** {{failure_type}} (e.g., complete outage, elevated error rate, high latency)
+**Current severity:** {{error_rate}}
+**Environment:** {{environment}}
+
+Please help me:
+1. **Dependency map** — Which services call {{affected_service}} (upstream)? Which services does it call (downstream)?
+2. **User / customer impact** — Which user-facing features or API endpoints are unavailable or degraded?
+3. **Cascading failure risk** — Which upstream services are at risk of cascading failure? Are circuit breakers in place?
+4. **SLO impact** — Which SLOs are currently burning and at what error budget burn rate?
+5. **Recovery priority order** — Given the dependency map, what's the optimal order for restoring services?
+6. **Status communication** — Draft a brief status page update and an internal incident channel message`,
+    variables: [
+      { id: 'v1', name: 'affected_service', label: 'Failing Service', placeholder: 'e.g., order-service', type: 'text' },
+      { id: 'v2', name: 'failure_type', label: 'Failure Type', placeholder: 'Select failure type', type: 'dropdown', options: ['Complete outage', 'Elevated error rate', 'High latency', 'Partial degradation', 'Data inconsistency'] },
+      { id: 'v3', name: 'error_rate', label: 'Error Rate / Severity', placeholder: 'e.g., 45% error rate, P99 > 10s', type: 'text' },
+      { id: 'v4', name: 'environment', label: 'Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Production', 'Staging', 'Pre-production'] },
+    ],
+    tags: ['blast-radius', 'incident', 'slo', 'dependencies', 'sre'],
+    subUseCaseId: 'ai-ops-blast-radius',
+    subUseCaseTitle: 'Blast Radius Analysis',
+    useCaseId: 'ai-ops-incident',
+    useCaseTitle: 'Incident Response',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-if-003',
+    title: 'Postmortem Generator',
+    content: `The incident for {{service_name}} has been resolved. Generate a comprehensive postmortem document.
+
+**Service:** {{service_name}}
+**Incident summary:** {{incident_summary}}
+**Duration:** {{incident_duration}}
+**Environment:** {{environment}}
+**Customer impact:** {{customer_impact}}
+
+**Timeline of events:**
+{{incident_timeline}}
+
+**Root cause (if known):** {{root_cause}}
+
+**Actions taken to resolve:**
+{{resolution_steps}}
+
+Please generate a professional postmortem covering:
+1. **Executive summary** — 2-3 sentences suitable for leadership
+2. **Impact summary** — Users affected, error budget consumed, SLO impact
+3. **Root cause analysis** — 5-why analysis based on the timeline
+4. **Contributing factors** — What conditions allowed this incident to occur?
+5. **Detection & response analysis** — How was it detected? Was MTTR acceptable? What slowed response?
+6. **Action items** — Specific, owner-assigned follow-up tasks with suggested deadlines
+7. **Prevention** — Harness configurations (alerts, chaos experiments, CV gates) that would have prevented or caught this earlier`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., payment-service', type: 'text' },
+      { id: 'v2', name: 'incident_summary', label: 'Incident Summary', placeholder: 'One-line description of what happened', type: 'text' },
+      { id: 'v3', name: 'incident_duration', label: 'Incident Duration', placeholder: 'e.g., 47 minutes', type: 'text' },
+      { id: 'v4', name: 'environment', label: 'Environment', placeholder: 'Select environment', type: 'dropdown', options: ['Production', 'Staging', 'Pre-production'] },
+      { id: 'v5', name: 'customer_impact', label: 'Customer Impact', placeholder: 'e.g., Checkout unavailable for ~2,000 users', type: 'text' },
+      { id: 'v6', name: 'incident_timeline', label: 'Incident Timeline', placeholder: 'List key events with timestamps', type: 'textarea' },
+      { id: 'v7', name: 'root_cause', label: 'Root Cause (if known)', placeholder: 'e.g., Null pointer in refund handler introduced in v2.4.1', type: 'textarea' },
+      { id: 'v8', name: 'resolution_steps', label: 'Actions Taken to Resolve', placeholder: 'List the steps taken to resolve the incident', type: 'textarea' },
+    ],
+    tags: ['postmortem', 'incident', 'rca', 'sre', 'documentation'],
+    subUseCaseId: 'ai-ops-postmortem',
+    subUseCaseTitle: 'Postmortem Generator',
+    useCaseId: 'ai-ops-incident',
+    useCaseTitle: 'Incident Response',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+
+  // ── Situational: Cost Spike ───────────────────────────────────────────────────
+  {
+    id: 'ops-cs-001',
+    title: 'Cost Spike Root Cause Analysis',
+    content: `My cloud costs for {{cloud_provider}} have spiked unexpectedly. Help me identify the root cause and stop the bleeding.
+
+**Cloud provider:** {{cloud_provider}}
+**Account / project:** {{project_name}}
+**Cost increase:** {{cost_increase}}
+**Time period:** {{time_period}}
+**Services suspected (if any):** {{suspected_services}}
+
+Please help me:
+1. **Correlate with Harness activity** — What pipeline runs, deployments, or scaling events happened during the spike period?
+2. **Top cost drivers** — Which resources (compute, storage, data transfer, managed services) drove the increase?
+3. **Orphaned resources** — Are there resources provisioned by pipelines that were never terminated?
+4. **Tag coverage audit** — Are all pipeline-provisioned resources properly tagged for cost attribution?
+5. **Immediate cost reduction** — What can I do right now to stop overspending (terminate idle resources, scale down, disable unused features)?
+6. **Prevention policy** — What Harness CCM budget alerts and governance rules should I set up to catch this earlier next time?`,
+    variables: [
+      { id: 'v1', name: 'cloud_provider', label: 'Cloud Provider', placeholder: 'Select cloud provider', type: 'dropdown', options: ['AWS', 'GCP', 'Azure', 'Multi-cloud'] },
+      { id: 'v2', name: 'project_name', label: 'Account / Project Name', placeholder: 'e.g., prod-aws-account', type: 'text' },
+      { id: 'v3', name: 'cost_increase', label: 'Cost Increase', placeholder: 'e.g., 40% higher than last month, unexpected $12,000', type: 'text' },
+      { id: 'v4', name: 'time_period', label: 'Time Period', placeholder: 'e.g., March 2026, last 7 days', type: 'text' },
+      { id: 'v5', name: 'suspected_services', label: 'Suspected Services / Resources', placeholder: 'e.g., EC2, RDS, data transfer (optional)', type: 'text' },
+    ],
+    tags: ['cost-spike', 'finops', 'cloud-cost', 'ccm', 'optimization'],
+    subUseCaseId: 'ai-ops-cost-spike',
+    subUseCaseTitle: 'Cost Spike Root Cause',
+    useCaseId: 'ai-ops-cost',
+    useCaseTitle: 'Cost Investigation',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-cs-002',
+    title: 'Idle Resource Detector',
+    content: `I want to find and eliminate idle or orphaned cloud resources in {{environment}} that may have been left behind by Harness pipelines or old deployments.
+
+**Cloud provider:** {{cloud_provider}}
+**Team / project:** {{project_name}}
+**Environment to audit:** {{environment}}
+**Idle threshold:** {{idle_threshold}}
+
+Please audit and identify:
+1. **Idle compute** — EC2 instances, GKE nodes, or AKS VMs with CPU/memory utilization below 10% for {{idle_threshold}}
+2. **Orphaned storage** — Unattached EBS volumes, unused GCS buckets, or stale persistent volumes with no workload
+3. **Zombie deployments** — Services still running from old pipelines or decommissioned features that are no longer needed
+4. **Stale test environments** — Environments provisioned for feature flag testing or PRs that have since been cleaned up in code but not in infra
+5. **Estimated savings** — Monthly cost savings if identified resources are terminated
+6. **Safe termination plan** — Sequenced list of resources safe to terminate with the Harness pipeline or CLI commands to do so`,
+    variables: [
+      { id: 'v1', name: 'cloud_provider', label: 'Cloud Provider', placeholder: 'Select cloud provider', type: 'dropdown', options: ['AWS', 'GCP', 'Azure', 'Multi-cloud'] },
+      { id: 'v2', name: 'project_name', label: 'Team / Project Name', placeholder: 'e.g., platform-team', type: 'text' },
+      { id: 'v3', name: 'environment', label: 'Environment to Audit', placeholder: 'Select environment', type: 'dropdown', options: ['All environments', 'Production', 'Staging', 'Development', 'Test'] },
+      { id: 'v4', name: 'idle_threshold', label: 'Idle Threshold', placeholder: 'e.g., 7 days, 30 days', type: 'text', defaultValue: '7 days' },
+    ],
+    tags: ['idle-resources', 'finops', 'cost-optimization', 'ccm', 'cleanup'],
+    subUseCaseId: 'ai-ops-idle',
+    subUseCaseTitle: 'Idle Resource Detector',
+    useCaseId: 'ai-ops-cost',
+    useCaseTitle: 'Cost Investigation',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+
+  // ── Situational: Optimize Pipeline ───────────────────────────────────────────
+  {
+    id: 'ops-op-001',
+    title: 'Pipeline Speed Optimization',
+    content: `My CI/CD pipeline for {{service_name}} is too slow. Help me identify bottlenecks and create a prioritized optimization plan.
+
+**Service:** {{service_name}}
+**Pipeline name:** {{pipeline_name}}
+**Current total duration:** {{current_duration}}
+**Target duration:** {{target_duration}}
+**Tech stack:** {{build_tool}} on {{runtime}}
+
+**Current stage breakdown (approximate):**
+{{stage_times}}
+
+Please analyze and give me a prioritized plan:
+1. **Top bottlenecks** — Which stages are taking disproportionately long relative to their value?
+2. **Parallelization opportunities** — Which sequential stages could safely run in parallel?
+3. **Caching improvements** — What dependency, Docker layer, or build artifact caching is missing or misconfigured?
+4. **Test optimization** — Can Harness Test Intelligence eliminate redundant test execution? Are there test stage inefficiencies?
+5. **Infrastructure right-sizing** — Are build runners appropriately sized? Is there a faster tier available?
+6. **Quick wins vs. long-term** — Separate changes I can make today from larger architectural improvements
+
+For each recommendation, show the **expected time saved** and **implementation effort** (Low / Medium / High).`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., checkout-service', type: 'text' },
+      { id: 'v2', name: 'pipeline_name', label: 'Pipeline Name', placeholder: 'e.g., checkout-service-ci', type: 'text' },
+      { id: 'v3', name: 'current_duration', label: 'Current Duration', placeholder: 'e.g., 47 minutes', type: 'text' },
+      { id: 'v4', name: 'target_duration', label: 'Target Duration', placeholder: 'e.g., under 15 minutes', type: 'text' },
+      { id: 'v5', name: 'build_tool', label: 'Build Tool', placeholder: 'Select build tool', type: 'dropdown', options: ['Maven', 'Gradle', 'npm', 'yarn', 'pip', 'Go modules', 'Cargo', 'Docker'] },
+      { id: 'v6', name: 'runtime', label: 'Runtime / Language', placeholder: 'e.g., Java 21, Node 20, Python 3.11', type: 'text' },
+      { id: 'v7', name: 'stage_times', label: 'Stage Breakdown', placeholder: 'e.g., Checkout: 1m, Build: 18m, Test: 22m, Docker build: 6m', type: 'textarea' },
+    ],
+    tags: ['optimization', 'pipeline-speed', 'caching', 'parallelization', 'ci'],
+    subUseCaseId: 'ai-ops-speed',
+    subUseCaseTitle: 'Pipeline Speed Optimization',
+    useCaseId: 'ai-ops-optimize',
+    useCaseTitle: 'Optimization',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'ops-op-002',
+    title: 'Cache Hit Rate Advisor',
+    content: `My pipeline cache hit rate is low and builds are downloading dependencies on every run. Help me design an effective caching strategy.
+
+**Service:** {{service_name}}
+**Build tool:** {{build_tool}}
+**Current cache hit rate:** {{cache_hit_rate}} (if known)
+**Runner type:** {{runner_type}}
+
+**Current caching configuration:**
+{{current_cache_config}}
+
+Please:
+1. **Diagnose cache misses** — What's causing the cache to bust on every run? (cache key issues, missing paths, TTL too short, key too broad?)
+2. **Optimal cache key strategy** — What's the ideal cache key for {{build_tool}} that maximizes hit rate while staying fresh when dependencies actually change?
+3. **Missing cache paths** — Are there dependency directories or build artifacts I should be caching that aren't?
+4. **Docker layer optimization** — If using Docker, how should I order Dockerfile instructions to maximize layer cache reuse?
+5. **Updated YAML** — Provide a complete, ready-to-use Harness cache step configuration for {{build_tool}} on {{runner_type}}`,
+    variables: [
+      { id: 'v1', name: 'service_name', label: 'Service Name', placeholder: 'e.g., api-gateway', type: 'text' },
+      { id: 'v2', name: 'build_tool', label: 'Build Tool', placeholder: 'Select build tool', type: 'dropdown', options: ['Maven', 'Gradle', 'npm', 'yarn', 'pnpm', 'pip', 'Poetry', 'Go modules', 'Cargo'] },
+      { id: 'v3', name: 'cache_hit_rate', label: 'Cache Hit Rate (%)', placeholder: 'e.g., 20% or "unknown"', type: 'text' },
+      { id: 'v4', name: 'runner_type', label: 'Runner Type', placeholder: 'Select runner type', type: 'dropdown', options: ['Harness Cloud', 'Self-hosted Kubernetes', 'Self-hosted VM', 'GitHub Actions runner'] },
+      { id: 'v5', name: 'current_cache_config', label: 'Current Cache Config', placeholder: 'Paste current YAML cache step, or describe current setup', type: 'textarea' },
+    ],
+    tags: ['cache', 'optimization', 'pipeline-speed', 'ci', 'docker'],
+    subUseCaseId: 'ai-ops-cache',
+    subUseCaseTitle: 'Cache Hit Rate Advisor',
+    useCaseId: 'ai-ops-optimize',
+    useCaseTitle: 'Optimization',
+    moduleId: 'ai-ops',
+    moduleTitle: 'Situational AI Workflows',
+    moduleColor: '#10b981',
+    copyCount: 0,
+    createdAt: '2026-03-01T10:00:00Z',
+    updatedAt: '2026-03-01T10:00:00Z',
   },
 ]
 
