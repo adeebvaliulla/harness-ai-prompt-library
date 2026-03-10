@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Harness AI Prompt Library',
   description: 'Curated AI prompts for every Harness module — search, customize, and copy in seconds.',
   icons: {
-    icon: '/harness-logo.svg',
+    icon: 'https://cdn.prod.website-files.com/6222ca42ea87e1bd1aa1d10c/6897b6098fe3070c39218537_Harness%20AI.svg',
   },
 }
 
@@ -25,7 +24,6 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-background text-foreground">
         {children}
         <Toaster richColors position="bottom-right" />
-        <Analytics />
       </body>
     </html>
   )
