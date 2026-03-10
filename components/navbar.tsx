@@ -17,7 +17,7 @@ export function Navbar() {
         {/* Logo + title */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <Image
-            src="/harness-logo-full.png"
+            src="https://cdn.prod.website-files.com/6222ca42ea87e1bd1aa1d10c/68658b6728c6ec729bcf76fc_harness-logo%20(1).avif"
             alt="Harness"
             width={120}
             height={25}
