@@ -158,7 +158,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
       </h3>
 
       {/* Description */}
-      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 flex-1">
         {prompt.description}
       </p>
 

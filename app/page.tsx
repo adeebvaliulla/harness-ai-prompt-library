@@ -144,11 +144,11 @@ export default function HomePage() {
     situation: SituationType | null,
   ) {
     let result = prompts
-    if (situation) result = result.filter(p => p.situations?.includes(situation))
     if (mods.length > 0) result = result.filter(p => mods.includes(p.moduleId))
     if (agents.length > 0) result = result.filter(p => agents.includes(p.agentType))
     if (complexities.length > 0) result = result.filter(p => complexities.includes(p.complexity))
     if (stage) result = result.filter(p => p.sdlcStage === stage)
+    if (situation) result = result.filter(p => p.situations?.includes(situation))
     if (!q.trim()) return result
     const lower = q.toLowerCase()
     return result.filter(p =>
@@ -521,18 +521,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Situation Selector */}
-          <SituationSelector
-            situationCounts={situationCounts}
-            selectedSituation={selectedSituation}
-            onSelect={setSelectedSituation}
-          />
-
           {/* Agent Showcase */}
           <AgentShowcase
             agentCounts={agentCounts}
             selectedAgents={selectedAgents}
             onToggle={toggleAgent}
+          />
+
+          {/* Situation Selector */}
+          <SituationSelector
+            situationCounts={situationCounts}
+            selectedSituation={selectedSituation}
+            onSelect={setSelectedSituation}
           />
 
           {/* Prompt grid */}
